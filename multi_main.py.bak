@@ -1,0 +1,164 @@
+# -*- coding: utf-8 -*-
+"""multi_main.py (multi-vehicle entry sürümü)
+
+Amaç:
+- Tek bir aracı (mis_id=0) koşmak yerine, `multiset.StatusParams` uzunluğu kadar aracı
+  aynı simülasyon koşusunda başlatmak.
+
+Not:
+- DataSave bazı sürümlerde save_path zorunlu olabilir. Bu dosya her iki durumu da destekler.
+"""
+
+import os
+import pandas as pd
+
+import multiset as glbs  # type: ignore
+from guidance.multiMissileGuideInstance import MultiMisGuideInstance
+from core.multiMissileSimInstance import MultiMisSimInstance
+from database.vehicleParams import CAVHParams
+from dynamics.aerodynamic import AerodynamicCAVH
+from dynamics.motionEquation import ME6D
+from entity.missile import Missile
+from store.dataSave import DataSave
+from store.status import ME6DStatus, MissileStatus
+from utils.integral import RungeKutta4
+
+
+def _num_vehicles_from_statusparams() -> int:
+    """StatusParams tanımı yoksa 1 döner; varsa uzunluğunu döner."""
+    sp = getattr(glbs, "StatusParams", None)
+    if sp is None:
+        return 1
+    try:
+        n = len(sp)
+    except Exception:
+        return 1
+    return max(1, int(n))
+
+
+def _safe_store_path() -> str:
+    """STORE_DATA yoksa makul bir default üretir."""
+    p = getattr(glbs, "STORE_DATA", None)
+    if not p or not isinstance(p, str):
+        p = os.path.join("store", "multiSimulation_case.csv")
+    return p
+
+
+def _ensure_dir_for_file(path: str) -> None:
+    d = os.path.dirname(path)
+    if d:
+        os.makedirs(d, exist_ok=True)
+
+
+def _make_datasave_list(n: int, base_store: str):
+    """DataSave() ya da DataSave(save_path=...) uyumluluğu için güvenli kurucu."""
+    _ensure_dir_for_file(base_store)
+    base_root, base_ext = os.path.splitext(base_store)
+    if not base_ext:
+        base_ext = ".csv"
+
+    dbs = []
+    for i in range(n):
+        try:
+            # DataSave() çalışıyorsa doğrudan kullan
+            dbs.append(DataSave())
+            continue
+        except TypeError:
+            # save_path zorunlu olan sürümler için fallback
+            pass
+
+        tmp_path = f"{base_root}.tmp_mis{i}{base_ext}"
+        try:
+            dbs.append(DataSave(save_path=tmp_path))
+        except TypeError:
+            # bazı sürümlerde positional olabilir
+            dbs.append(DataSave(tmp_path))
+
+    return dbs
+
+
+# 0) Kaç araç?
+N = _num_vehicles_from_statusparams()
+print(f"[multi_main] StatusParams üzerinden araç sayısı: N={N}")
+
+# 1) Vehicle list (ME6D + Aero + Params + Status)
+mis = [
+    Missile(
+        motion_equation=ME6D(),
+        aerodynamic=AerodynamicCAVH(),
+        params=CAVHParams(),
+        status=ME6DStatus(),
+    )
+    for _ in range(N)
+]
+
+# 2) Landing-zone / target list (projede target için Missile + MissileStatus kullanılmış)
+tar = [Missile(status=MissileStatus()) for _ in range(N)]
+
+# 3) Guidance / integrator / database
+guide = MultiMisGuideInstance()
+integral = RungeKutta4()
+
+store_path = _safe_store_path()
+print(f"[multi_main] EG_PROFILE={os.environ.get('EG_PROFILE','')} EG_RUN_ID={os.environ.get('EG_RUN_ID','')} STORE_DATA={store_path}")
+database = _make_datasave_list(N, store_path)
+
+# 4) Simulation instance
+simulation = MultiMisSimInstance()
+simulation.init(mis=mis, tar=tar, guide=guide, integ=integral, db=database)
+
+# 5) Run
+simulation.simulation()
+
+# 5.1) Ensure last buffer is flushed (if DataSave supports finalize)
+dbs = simulation.db if isinstance(simulation.db, (list, tuple)) else [simulation.db]
+for db in dbs:
+    if hasattr(db, "finalize"):
+        try:
+            db.finalize()
+        except Exception:
+            pass
+
+# 6) Save CSV (ALL vehicles, if available)
+frames = []
+for i, db in enumerate(dbs):
+    df_i = db.data.copy()  # DataSave.data should flush internally
+
+    # mis_id yoksa ekle (çoklu çizim için güvenli)
+    if "mis_id" not in df_i.columns:
+        df_i.insert(0, "mis_id", i)
+
+    frames.append(df_i)
+
+result = pd.concat(frames, ignore_index=True) if len(frames) > 1 else frames[0]
+
+# ------------------------------------------------------------
+# Run metadata (for experiment traceability)
+# ------------------------------------------------------------
+_run_id = os.environ.get("EG_RUN_ID", "")
+_profile = os.environ.get("EG_PROFILE", "")
+
+# These columns make each run self-describing (and prevent "identical hash" confusion)
+result["run_id"] = _run_id
+result["run_profile"] = _profile
+
+# Record effective config knobs (so you can verify EG_PROFILE overrides are actually applied)
+result["cfg_MIN_H"] = float(getattr(glbs, "MIN_H", float("nan")))
+result["cfg_INI_STEP"] = float(getattr(glbs, "INI_STEP", float("nan")))
+_gmd = getattr(glbs, "GuideMetaDefaults", {}) or {}
+for _k in ["bank_dwell_sec", "sigma_cmd_ema", "cos_delta_psi_eps", "update_L12D_denom_eps",
+           "L12D_clip_factor", "L12D_update_alpha", "height_tol", "quad_epsabs", "quad_epsrel", "quad_limit"]:
+    result[f"cfg_{_k}"] = float(_gmd.get(_k, float("nan")))
+
+# (Opsiyonel) zaman kolonu varsa sıralama daha okunur olur
+for tcol in ["t_local", "global_t", "t"]:
+    if tcol in result.columns:
+        result = result.sort_values(["mis_id", tcol], kind="mergesort").reset_index(drop=True)
+        break
+
+_ensure_dir_for_file(store_path)
+result.to_csv(store_path, index=False)
+
+print(f"结果数据已保存至 {store_path}")
+print("unique mis_id =", result["mis_id"].nunique() if "mis_id" in result.columns else "N/A")
+

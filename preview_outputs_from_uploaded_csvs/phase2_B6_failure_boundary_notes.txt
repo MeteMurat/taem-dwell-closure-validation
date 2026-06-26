@@ -1,0 +1,20 @@
+B6 failure-boundary notes
+
+1. B5E/B5F should not be treated as failed replications of B5D.
+   They probe a harder mis0-left corner outside the tight local U3 envelope.
+
+2. Repeated psi_bias/fade sweeps are not recommended at this point.
+   B5E showed no strict pass and did not produce useful candidate separation.
+
+3. Brute-force MAXITER expansion is not recommended as the primary route.
+   B5F showed range closure in one long-propagation case, but no TAEM latch;
+   other long runs timed out or failed to yield a usable pass.
+
+4. The correct technical interpretation is a guidance phase-transition /
+   terminal-capture boundary, not a broad failure of the validated U3 envelope.
+
+5. Future work should target a dedicated mis0 terminal-capture update before
+   expanding the certified envelope beyond B5D.
+
+- B5E_mis0_corner_bounded_diagnostic: FAIL_TAEM_ERROR | Boundary evidence. B5E shows that simple psi_bias/fade refinement is insufficient for certifying the mis0-left corner.
+- B5F_mis0_long_propagation_pathspec_audit: TIMEOUT_NO_CSV | Reachability-boundary evidence. The best long-propagation case closes range but remains outside TAEM, indicating a terminal-capture / phase-transition boundary.

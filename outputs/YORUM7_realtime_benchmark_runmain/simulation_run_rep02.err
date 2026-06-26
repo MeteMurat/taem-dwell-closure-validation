@@ -1,0 +1,38 @@
+D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\custom\EntryCorridor.py:97: RuntimeWarning: The iteration is not making good progress, as measured by the 
+ improvement from the last ten iterations.
+  return fsolve(lambda h: f(v, h), x0)
+Traceback (most recent call last):
+  File "D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\multi_main.py", line 883, in <module>
+    main()
+  File "D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\multi_main.py", line 843, in main
+    simulation.simulation()
+  File "D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\core\MultiMissileSim.py", line 71, in simulation
+    while self.next():
+          ^^^^^^^^^^^
+  File "D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\core\MultiMissileSim.py", line 81, in next
+    if self.one_step_guide():
+       ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\multi_main.py", line 102, in one_step_guide
+    out = super().one_step_guide()
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\core\MultiMissileSim.py", line 97, in one_step_guide
+    return self.guide.one_step_guide(self.mis, self.tar, self.guide_params())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\multi_main.py", line 709, in one_step_guide
+    alive = _call_flexible_one_step(child, m, t, meta_i)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\multi_main.py", line 364, in _call_flexible_one_step
+    return obj.one_step_guide(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\guidance\multiMissileGuideInstance_mis1_state_first_v8_2_final_success_flags.py", line 661, in one_step_guide
+    self.guide(missile, target, meta)
+  File "D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\guidance\multiMissileGuideInstance_mis1_state_first_v8_2_final_success_flags.py", line 655, in guide
+    super().guide(mis, tar, meta)
+  File "D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\guidance\multiMissileGuideInstance_mis1_state_first_v8_2_final_success_flags.py", line 506, in guide
+    self.guide_phase[self.guide_mode](mis, tar, meta)
+  File "D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\customGuidance.py", line 205, in descent_phase1
+    print(f'\u4e0b\u964d\u6bb5\u7b2c\u4e00\u6bb5\u7ed3\u675f, t = {meta["t"]}')
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1254.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 0-7: character maps to <undefined>

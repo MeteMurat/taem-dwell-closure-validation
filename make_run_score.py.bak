@@ -1,0 +1,48 @@
+import argparse
+import pandas as pd
+import numpy as np
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--closest", required=True)
+    ap.add_argument("--taem_closest", required=True)
+    ap.add_argument("--event_snapshots", required=True)
+    ap.add_argument("--out", required=True)
+    args = ap.parse_args()
+
+    car = pd.read_csv(args.closest, low_memory=False)
+    tcr = pd.read_csv(args.taem_closest, low_memory=False)
+    ev  = pd.read_csv(args.event_snapshots, low_memory=False)
+
+    # overfly ratio: post_s_go / ca_s_go
+    car["overfly_ratio"] = np.where(car["ca_s_go"] != 0, car["post_s_go"]/car["ca_s_go"], np.nan)
+
+    # pull two events for phase mismatch: min_s_go vs h_near_HTAEM
+    ev_min = ev[ev["event"]=="min_s_go"][["mis_id","t","height_m","velocity_mps","s_go_m","taem_normdist"]].rename(
+        columns={"t":"t_min_sgo","height_m":"h_min_sgo","velocity_mps":"v_min_sgo","s_go_m":"sgo_min_sgo","taem_normdist":"nd_min_sgo"}
+    )
+    ev_h   = ev[ev["event"]=="h_near_HTAEM"][["mis_id","t","height_m","velocity_mps","s_go_m","taem_normdist"]].rename(
+        columns={"t":"t_h_near","height_m":"h_h_near","velocity_mps":"v_h_near","s_go_m":"sgo_h_near","taem_normdist":"nd_h_near"}
+    )
+
+    out = (
+        car.merge(tcr, on="mis_id", how="left")
+           .merge(ev_min, on="mis_id", how="left")
+           .merge(ev_h, on="mis_id", how="left")
+    )
+
+    out["phase_dt_h_minus_min_sgo_s"] = out["t_h_near"] - out["t_min_sgo"]
+    keep = [
+        "mis_id",
+        "t_ca_s","ca_s_go","post_s_go","overfly_ratio",
+        "t_closest_taem","taem_normdist_min",
+        "err_h_m_at_closest","err_v_mps_at_closest","err_sgo_m_at_closest",
+        "t_min_sgo","t_h_near","phase_dt_h_minus_min_sgo_s",
+        "sgo_h_near"
+    ]
+    out = out[keep].sort_values("mis_id")
+    out.to_csv(args.out, index=False)
+    print("[OK] wrote:", args.out)
+
+if __name__ == "__main__":
+    main()

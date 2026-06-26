@@ -1,0 +1,716 @@
+﻿Exact figure source block extraction
+Root: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master
+Time: 06/26/2026 09:49:05
+
+============================================================
+FILE: .\make_fig01_b5d_success_rates.py
+LINES: 1 - 140
+============================================================
+    1: import math
+    2: import matplotlib.pyplot as plt
+    3: import numpy as np
+    4: 
+    5: # ------------------------------------------------------------
+    6: # Wilson confidence interval
+    7: # ------------------------------------------------------------
+    8: def wilson_ci(k, n, z=1.959963984540054):
+    9:     if n == 0:
+   10:         return (0.0, 0.0)
+   11:     p = k / n
+   12:     denom = 1.0 + (z**2) / n
+   13:     center = (p + (z**2) / (2*n)) / denom
+   14:     margin = (z / denom) * math.sqrt((p*(1-p)/n) + (z**2)/(4*n**2))
+   15:     lower = max(0.0, center - margin)
+   16:     upper = min(1.0, center + margin)
+   17:     return lower, upper
+   18: 
+   19: # ------------------------------------------------------------
+   20: # B5D positive-evidence data ONLY
+   21: # ------------------------------------------------------------
+   22: labels = [
+   23:     "Case-level\nstrict closure",
+   24:     "Vehicle-level\nstrict closure"
+   25: ]
+   26: 
+   27: successes = [49, 149]
+   28: totals    = [50, 150]
+   29: 
+   30: rates = [k/n for k, n in zip(successes, totals)]
+   31: cis = [wilson_ci(k, n) for k, n in zip(successes, totals)]
+   32: 
+   33: lower_err = [r - ci[0] for r, ci in zip(rates, cis)]
+   34: upper_err = [ci[1] - r for r, ci in zip(rates, cis)]
+   35: 
+   36: # ------------------------------------------------------------
+   37: # Plot
+   38: # ------------------------------------------------------------
+   39: fig, ax = plt.subplots(figsize=(8.6, 5.8))
+   40: 
+   41: x = np.arange(len(labels))
+   42: bars = ax.bar(
+   43:     x,
+   44:     rates,
+   45:     yerr=[lower_err, upper_err],
+   46:     capsize=6,
+   47:     width=0.58
+   48: )
+   49: 
+   50: # Y-axis: Ã¼st boÅŸluÄŸu artÄ±r
+   51: ax.set_ylim(0.0, 1.18)
+   52: ax.set_ylabel("Strict closure rate")
+   53: ax.set_title("Final sampled validation statistics")
+   54: ax.set_xticks(x)
+   55: ax.set_xticklabels(labels)
+   56: 
+   57: # Referans Ã§izgisi
+   58: ax.axhline(1.0, linestyle="--", linewidth=1)
+   59: 
+   60: # Grid
+   61: ax.grid(True, axis="y", alpha=0.25)
+   62: 
+   63: # ------------------------------------------------------------
+   64: # Controlled annotation placement
+   65: # ------------------------------------------------------------
+   66: for bar, k, n, r, ci in zip(bars, successes, totals, rates, cis):
+   67:     txt = (
+   68:         f"{k}/{n} = {r:.3f}\n"
+   69:         f"95% CI: [{ci[0]:.3f}, {ci[1]:.3f}]"
+   70:     )
+   71: 
+   72:     # YazÄ±yÄ± taÅŸÄ±rmamak iÃ§in sabit kontrollÃ¼ yÃ¼kseklik
+   73:     y_text = min(ci[1] + 0.025, 1.105)
+   74: 
+   75:     ax.text(
+   76:         bar.get_x() + bar.get_width()/2,
+   77:         y_text,
+   78:         txt,
+   79:         ha="center",
+   80:         va="bottom",
+   81:         fontsize=8.5,
+   82:         bbox=dict(boxstyle="round,pad=0.25", facecolor="white", edgecolor="none", alpha=0.9)
+   83:     )
+   84: 
+   85: plt.tight_layout()
+   86: 
+   87: # ------------------------------------------------------------
+   88: # Save
+   89: # ------------------------------------------------------------
+   90: out_pdf = "fig01_phase2_success_rates_professional.pdf"
+   91: out_png = "fig01_phase2_success_rates_professional.png"
+   92: 
+   93: plt.savefig(out_pdf, bbox_inches="tight")
+   94: plt.savefig(out_png, dpi=300, bbox_inches="tight")
+   95: plt.close()
+   96: 
+   97: print(f"[OK] wrote: {out_pdf}")
+   98: print(f"[OK] wrote: {out_png}")
+
+============================================================
+FILE: .\make_fig03_B5E_normalized_residual.py
+LINES: 140 - 220
+============================================================
+  140:         label_col = "candidate_label"
+  141: 
+  142:     # Keep finite rows only
+  143:     df["_h_abs"] = safe_num(df[h_col]).abs()
+  144:     df["_v_abs"] = safe_num(df[v_col]).abs()
+  145:     df["_s_abs"] = safe_num(df[s_col]).abs()
+  146: 
+  147:     df = df[np.isfinite(df["_h_abs"]) & np.isfinite(df["_v_abs"]) & np.isfinite(df["_s_abs"])].copy()
+  148: 
+  149:     # Use first N candidates, preserving current ordering
+  150:     df = df.head(args.max_candidates).copy()
+  151: 
+  152:     # Normalized residuals
+  153:     df["Altitude residual |e_h|/eps_h"] = df["_h_abs"] / args.eps_h
+  154:     df["Velocity residual |e_v|/eps_v"] = df["_v_abs"] / args.eps_v
+  155:     df["Range-to-go residual |e_s|/eps_s"] = df["_s_abs"] / args.eps_s
+  156: 
+  157:     # Clean labels
+  158:     labels = []
+  159:     for i, val in enumerate(df[label_col].astype(str).tolist(), start=1):
+  160:         if val.lower().startswith("candidate"):
+  161:             labels.append(val)
+  162:         else:
+  163:             labels.append(f"Candidate {i}")
+  164: 
+  165:     x = np.arange(len(df))
+  166:     width = 0.26
+  167: 
+  168:     fig, ax = plt.subplots(figsize=(10.5, 5.8))
+  169: 
+  170:     ax.bar(
+  171:         x - width,
+  172:         df["Altitude residual |e_h|/eps_h"].to_numpy(),
+  173:         width,
+  174:         label=r"Altitude residual $|e_h|/\epsilon_h$",
+  175:     )
+  176:     ax.bar(
+  177:         x,
+  178:         df["Velocity residual |e_v|/eps_v"].to_numpy(),
+  179:         width,
+  180:         label=r"Velocity residual $|e_v|/\epsilon_v$",
+  181:     )
+  182:     ax.bar(
+  183:         x + width,
+  184:         df["Range-to-go residual |e_s|/eps_s"].to_numpy(),
+  185:         width,
+  186:         label=r"Range-to-go residual $|e_s|/\epsilon_s$",
+  187:     )
+  188: 
+  189:     ax.axhline(1.0, linestyle="--", linewidth=1.2, label="Strict TAEM tolerance boundary")
+  190: 
+  191:     ax.set_xticks(x)
+  192:     ax.set_xticklabels(labels, rotation=35, ha="right")
+  193:     ax.set_ylabel("Normalized terminal residual")
+  194:     ax.set_title("Normalized terminal-residual diagnostic")
+  195:     ax.grid(True, axis="y", alpha=0.3)
+  196:     ax.legend(fontsize=8, loc="best")
+  197: 
+  198:     fig.tight_layout()
+  199: 
+  200:     pdf_path = outdir / f"{args.outname}.pdf"
+  201:     png_path = outdir / f"{args.outname}.png"
+  202:     csv_path = outdir / "b5e_normalized_terminal_residuals.csv"
+  203: 
+  204:     fig.savefig(pdf_path, bbox_inches="tight")
+  205:     fig.savefig(png_path, dpi=300, bbox_inches="tight")
+  206:     plt.close(fig)
+  207: 
+  208:     export_cols = [
+  209:         label_col,
+  210:         h_col,
+  211:         v_col,
+  212:         s_col,
+  213:         "Altitude residual |e_h|/eps_h",
+  214:         "Velocity residual |e_v|/eps_v",
+  215:         "Range-to-go residual |e_s|/eps_s",
+  216:     ]
+  217:     df[export_cols].to_csv(csv_path, index=False)
+  218: 
+  219:     print("[OK] Wrote:")
+  220:     print(f"  {pdf_path}")
+
+============================================================
+FILE: .\make_fig03_B5E_normalized_residual_from_runs.py
+LINES: 340 - 410
+============================================================
+  340:     input_csv = Path(args.input)
+  341:     outdir = Path(args.outdir)
+  342:     outdir.mkdir(parents=True, exist_ok=True)
+  343: 
+  344:     metrics, missing = collect_rows_from_input(
+  345:         input_csv=input_csv,
+  346:         h_taem=args.h_taem,
+  347:         v_taem=args.v_taem,
+  348:         s_taem=args.s_taem,
+  349:     )
+  350: 
+  351:     missing_path = outdir / "b5e_normalized_terminal_residuals_missing_cases.csv"
+  352:     missing.to_csv(missing_path, index=False)
+  353: 
+  354:     if metrics.empty:
+  355:         print("[ERR] No usable terminal-error rows could be extracted.")
+  356:         print(f"[INFO] Missing/unusable cases written to: {missing_path}")
+  357:         print()
+  358:         print("You need one of these inputs:")
+  359:         print("  1) A B5E by_vehicle/terminal_metrics CSV containing taem_h_err, taem_v_err, taem_s_go_err")
+  360:         print("  2) The actual B5E run trajectory CSVs referenced by the 'csv' column")
+  361:         raise SystemExit(2)
+  362: 
+  363:     metrics = metrics.copy()
+  364:     metrics["norm_h"] = metrics["h_err_m"].abs() / args.eps_h
+  365:     metrics["norm_v"] = metrics["v_err_mps"].abs() / args.eps_v
+  366:     metrics["norm_s"] = metrics["s_go_err_m"].abs() / args.eps_s
+  367:     metrics["norm_max"] = metrics[["norm_h", "norm_v", "norm_s"]].max(axis=1)
+  368: 
+  369:     # Sort by strongest residual first for diagnostic clarity
+  370:     metrics_plot = metrics.sort_values("norm_max", ascending=False).head(args.max_cases).reset_index(drop=True)
+  371: 
+  372:     labels = [f"C{i+1}" for i in range(len(metrics_plot))]
+  373:     x = np.arange(len(metrics_plot))
+  374:     width = 0.26
+  375: 
+  376:     fig, ax = plt.subplots(figsize=(10.5, 5.8))
+  377:     ax.bar(x - width, metrics_plot["norm_h"], width, label=r"Altitude residual $|e_h|/\epsilon_h$")
+  378:     ax.bar(x, metrics_plot["norm_v"], width, label=r"Velocity residual $|e_v|/\epsilon_v$")
+  379:     ax.bar(x + width, metrics_plot["norm_s"], width, label=r"Range-to-go residual $|e_s|/\epsilon_s$")
+  380: 
+  381:     ax.axhline(1.0, linestyle="--", linewidth=1.2, label="Strict TAEM tolerance boundary")
+  382:     ax.set_xticks(x)
+  383:     ax.set_xticklabels(labels)
+  384:     ax.set_ylabel("Normalized terminal residual")
+  385:     ax.set_title("Normalized terminal-residual diagnostic")
+  386:     ax.grid(True, axis="y", alpha=0.3)
+  387:     ax.legend(fontsize=8, loc="best")
+  388: 
+  389:     # Add compact case labels as note under plot
+  390:     case_note = "; ".join([f"{labels[i]}={metrics_plot.loc[i, 'case_id']}" for i in range(len(metrics_plot))])
+  391:     fig.text(0.01, -0.04, case_note, ha="left", va="top", fontsize=7)
+  392: 
+  393:     fig.tight_layout()
+  394: 
+  395:     pdf_path = outdir / f"{args.outname}.pdf"
+  396:     png_path = outdir / f"{args.outname}.png"
+  397:     csv_path = outdir / "b5e_normalized_terminal_residuals.csv"
+  398: 
+  399:     fig.savefig(pdf_path, bbox_inches="tight")
+  400:     fig.savefig(png_path, dpi=300, bbox_inches="tight")
+  401:     plt.close(fig)
+  402: 
+  403:     metrics.to_csv(csv_path, index=False)
+  404: 
+  405:     print("[OK] Wrote:")
+  406:     print(f"  {pdf_path}")
+  407:     print(f"  {png_path}")
+  408:     print(f"  {csv_path}")
+  409:     print(f"  {missing_path}")
+  410:     print()
+
+============================================================
+FILE: .\phase2_B6_figure_polish_package.py
+LINES: 160 - 260
+============================================================
+  160:     return s.astype(str).str.strip().str.lower().isin(["1", "true", "t", "yes", "y", "pass", "pass_strict"])
+  161: 
+  162: 
+  163: def num_col(df: pd.DataFrame | None, name: str) -> pd.Series:
+  164:     if df is None:
+  165:         return pd.Series([], dtype=float)
+  166:     if name not in df.columns:
+  167:         return pd.Series([np.nan] * len(df), index=df.index, dtype=float)
+  168:     return pd.to_numeric(df[name], errors="coerce")
+  169: 
+  170: 
+  171: def save_fig(fig, outdir: Path, stem: str):
+  172:     png = outdir / f"{stem}.png"
+  173:     pdf = outdir / f"{stem}.pdf"
+  174:     fig.savefig(png, dpi=300, bbox_inches="tight")
+  175:     fig.savefig(pdf, bbox_inches="tight")
+  176:     plt.close(fig)
+  177:     return [str(png), str(pdf)]
+  178: 
+  179: 
+  180: def figure1_success_rates(outdir: Path, b5e: pd.DataFrame | None, b5f: pd.DataFrame | None):
+  181:     labels = ["Case-level\nstrict closure", "Vehicle-level\nstrict closure", "Residual-boundary\naudit", "Long-propagation\naudit"]
+  182:     vals = [
+  183:         B5D["case_success"] / B5D["case_total"],
+  184:         B5D["vehicle_success"] / B5D["vehicle_total"],
+  185:         float(bool_col(b5e, "strict_pass").mean()) if b5e is not None and len(b5e) else np.nan,
+  186:         float(bool_col(b5f, "strict_pass").mean()) if b5f is not None and len(b5f) else np.nan,
+  187:     ]
+  188: 
+  189:     fig = plt.figure(figsize=(8.2, 4.8))
+  190:     ax = fig.add_subplot(1, 1, 1)
+  191:     ax.bar(labels, vals)
+  192:     ax.set_ylim(0, 1.05)
+  193:     ax.set_ylabel("Success rate")
+  194:     ax.set_title("Validated bounded local U3 envelope evidence")
+  195:     ax.grid(True, axis="y", alpha=0.30)
+  196:     for i, v in enumerate(vals):
+  197:         if np.isfinite(v):
+  198:             ax.text(i, min(1.02, v + 0.025), f"{100*v:.1f}%", ha="center", va="bottom", fontsize=9)
+  199:     fig.tight_layout()
+  200:     return save_fig(fig, outdir, "fig01_b6_success_rates_polished")
+  201: 
+  202: 
+  203: def figure2_boundary_summary(outdir: Path, b5e: pd.DataFrame | None, b5f: pd.DataFrame | None):
+  204:     labels = ["Residual-boundary audit", "Long-propagation audit"]
+  205:     non_pass = []
+  206:     timeout = []
+  207: 
+  208:     for df in [b5e, b5f]:
+  209:         if df is None or len(df) == 0:
+  210:             non_pass.append(np.nan)
+  211:             timeout.append(np.nan)
+  212:         else:
+  213:             non_pass.append(float((~bool_col(df, "strict_pass")).mean()))
+  214:             timeout.append(float(bool_col(df, "timed_out").mean()) if "timed_out" in df.columns else 0.0)
+  215: 
+  216:     x = np.arange(len(labels))
+  217:     width = 0.35
+  218:     fig = plt.figure(figsize=(7.6, 4.8))
+  219:     ax = fig.add_subplot(1, 1, 1)
+  220:     ax.bar(x - width / 2, non_pass, width, label="No strict TAEM closure")
+  221:     ax.bar(x + width / 2, timeout, width, label="Timeout or no terminal output")
+  222:     ax.set_xticks(x)
+  223:     ax.set_xticklabels(labels)
+  224:     ax.set_ylim(0, 1.05)
+  225:     ax.set_ylabel("Rate")
+  226:     ax.set_title("Boundary-diagnostic summary")
+  227:     ax.grid(True, axis="y", alpha=0.30)
+  228:     ax.legend(loc="best")
+  229: 
+  230:     for xx, rr in zip(x - width / 2, non_pass):
+  231:         if np.isfinite(rr):
+  232:             ax.text(xx, min(1.02, rr + 0.025), f"{100*rr:.1f}%", ha="center", va="bottom", fontsize=9)
+  233:     for xx, rr in zip(x + width / 2, timeout):
+  234:         if np.isfinite(rr):
+  235:             ax.text(xx, min(1.02, rr + 0.025), f"{100*rr:.1f}%", ha="center", va="bottom", fontsize=9)
+  236: 
+  237:     fig.tight_layout()
+  238:     return save_fig(fig, outdir, "fig02_b6_boundary_summary_polished")
+  239: 
+  240: 
+  241: def rank_b5e(df: pd.DataFrame, n: int = 12) -> pd.DataFrame:
+  242:     d = df.copy()
+  243:     if "score" in d.columns:
+  244:         d["_score"] = pd.to_numeric(d["score"], errors="coerce").fillna(1e99)
+  245:         d = d.sort_values("_score", ascending=True)
+  246:     return d.head(min(n, len(d)))
+  247: 
+  248: 
+  249: def candidate_labels(df: pd.DataFrame):
+  250:     return [f"Candidate {i+1}" for i in range(len(df))]
+  251: 
+  252: 
+  253: def figure3_error_bar(outdir: Path, df: pd.DataFrame, col: str, ylabel: str, stem: str, title: str, scale: float):
+  254:     d = rank_b5e(df, 12)
+  255:     labels = candidate_labels(d)
+  256:     vals = num_col(d, col).abs() / scale
+  257: 
+  258:     fig = plt.figure(figsize=(10.2, 4.8))
+  259:     ax = fig.add_subplot(1, 1, 1)
+  260:     ax.bar(np.arange(len(d)), vals)
+
+============================================================
+FILE: .\phase2_B6_make_publication_figures.py
+LINES: 170 - 285
+============================================================
+  170:         ax.text(x, zero_y, "N/A", ha="center", va="bottom", fontsize=10, clip_on=False)
+  171:         return
+  172:     y = value + 0.030 if value > 0 else zero_y
+  173:     ax.text(x, y, f"{100.0 * value:.1f}%", ha="center", va="bottom", fontsize=10, clip_on=False)
+  174: 
+  175: 
+  176: # -----------------------------------------------------------------------------
+  177: # Figure 1
+  178: # -----------------------------------------------------------------------------
+  179: 
+  180: def make_success_rates(outdir: Path, b5e: Optional[pd.DataFrame], b5f: Optional[pd.DataFrame]) -> Dict[str, Any]:
+  181:     b5d_case_rate = safe_rate(B5D_MANUAL["case_success"], B5D_MANUAL["case_total"])
+  182:     b5d_vehicle_rate = safe_rate(B5D_MANUAL["vehicle_success"], B5D_MANUAL["vehicle_total"])
+  183: 
+  184:     b5e_rate = np.nan
+  185:     if b5e is not None and len(b5e) > 0 and "strict_pass" in b5e.columns:
+  186:         b5e_rate = float(bool_series(b5e, "strict_pass").mean())
+  187: 
+  188:     b5f_rate = np.nan
+  189:     if b5f is not None and len(b5f) > 0 and "strict_pass" in b5f.columns:
+  190:         b5f_rate = float(bool_series(b5f, "strict_pass").mean())
+  191: 
+  192:     labels = [
+  193:         "Case-level\nstrict closure",
+  194:         "Vehicle-level\nstrict closure",
+  195:         "Residual-boundary\naudit",
+  196:         "Long-propagation\naudit",
+  197:     ]
+  198:     rates = [b5d_case_rate, b5d_vehicle_rate, b5e_rate, b5f_rate]
+  199: 
+  200:     fig, ax = plt.subplots(figsize=(9.2, 5.5))
+  201:     x = np.arange(len(labels))
+  202:     ax.bar(x, np.nan_to_num(rates, nan=0.0), width=0.72)
+  203:     ax.set_xticks(x)
+  204:     ax.set_xticklabels(labels)
+  205:     ax.set_ylim(0.0, 1.12)
+  206:     ax.set_ylabel("Success rate")
+  207:     ax.set_title("Validated bounded local U3 envelope evidence", pad=12)
+  208:     ax.grid(True, axis="y", alpha=0.30)
+  209:     ax.margins(y=0.08)
+  210: 
+  211:     for i, r in enumerate(rates):
+  212:         annotate_rate(ax, i, r)
+  213: 
+  214:     fig.tight_layout(pad=1.6)
+  215:     paths = save_figure(fig, outdir, "fig01_phase2_success_rates_professional")
+  216:     return {
+  217:         "figure": "Figure 1",
+  218:         "title": "Validated bounded local U3 envelope evidence",
+  219:         **paths,
+  220:         "caption": (
+  221:             "Validated bounded local U3 envelope evidence. B5D is used as the positive bounded-envelope "
+  222:             "evidence, whereas B5E and B5F are retained as boundary diagnostics."
+  223:         ),
+  224:     }
+  225: 
+  226: 
+  227: # -----------------------------------------------------------------------------
+  228: # Figure 2
+  229: # -----------------------------------------------------------------------------
+  230: 
+  231: def _failure_and_timeout_rates(df: Optional[pd.DataFrame]) -> Tuple[float, float]:
+  232:     if df is None or len(df) == 0:
+  233:         return np.nan, np.nan
+  234:     strict = bool_series(df, "strict_pass") if "strict_pass" in df.columns else pd.Series([False] * len(df), index=df.index)
+  235:     timed = bool_series(df, "timed_out") if "timed_out" in df.columns else pd.Series([False] * len(df), index=df.index)
+  236:     return float((~strict).mean()), float(timed.mean())
+  237: 
+  238: 
+  239: def make_failure_summary(outdir: Path, b5e: Optional[pd.DataFrame], b5f: Optional[pd.DataFrame]) -> Dict[str, Any]:
+  240:     labels = ["Residual-boundary audit", "Long-propagation audit"]
+  241:     b5e_fail, b5e_timeout = _failure_and_timeout_rates(b5e)
+  242:     b5f_fail, b5f_timeout = _failure_and_timeout_rates(b5f)
+  243:     fail_rates = [b5e_fail, b5f_fail]
+  244:     timeout_rates = [b5e_timeout, b5f_timeout]
+  245: 
+  246:     x = np.arange(len(labels))
+  247:     width = 0.34
+  248: 
+  249:     fig, ax = plt.subplots(figsize=(8.6, 5.4))
+  250:     ax.bar(x - width / 2, np.nan_to_num(fail_rates, nan=0.0), width, label="No strict TAEM closure")
+  251:     ax.bar(x + width / 2, np.nan_to_num(timeout_rates, nan=0.0), width, label="Timeout or missing terminal output")
+  252:     ax.set_ylim(0.0, 1.12)
+  253:     ax.set_ylabel("Rate")
+  254:     ax.set_xticks(x)
+  255:     ax.set_xticklabels(labels)
+  256:     ax.set_title("Boundary-diagnostic summary", pad=12)
+  257:     ax.grid(True, axis="y", alpha=0.30)
+  258: 
+  259:     for xx, r in zip(x - width / 2, fail_rates):
+  260:         annotate_rate(ax, xx, r)
+  261:     for xx, r in zip(x + width / 2, timeout_rates):
+  262:         annotate_rate(ax, xx, r)
+  263: 
+  264:     # Keep legend outside the data field so it never covers the bars.
+  265:     ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.13), ncol=2, frameon=True)
+  266:     fig.tight_layout(rect=[0.0, 0.08, 1.0, 1.0], pad=1.5)
+  267: 
+  268:     paths = save_figure(fig, outdir, "fig02_failure_boundary_summary_professional")
+  269:     return {
+  270:         "figure": "Figure 2",
+  271:         "title": "Boundary-diagnostic summary",
+  272:         **paths,
+  273:         "caption": (
+  274:             "Boundary-diagnostic summary for B5E and B5F. The figure separates the absence of "
+  275:             "strict TAEM closure from timeout or missing-terminal-output cases."
+  276:         ),
+  277:     }
+  278: 
+  279: 
+  280: # -----------------------------------------------------------------------------
+  281: # Figure 3
+  282: # -----------------------------------------------------------------------------
+  283: 
+  284: def make_b5e_terminal_error(outdir: Path, b5e: Optional[pd.DataFrame]) -> Optional[Dict[str, Any]]:
+  285:     if b5e is None or len(b5e) == 0:
+
+============================================================
+STRING SEARCH RESULTS
+============================================================
+-------------------- .\make_fig01_b5d_success_rates.py --------------------
+line 53: ax.set_title("Final sampled validation statistics")
+line 93: plt.savefig(out_pdf, bbox_inches="tight")
+line 94: plt.savefig(out_png, dpi=300, bbox_inches="tight")
+line 90: out_pdf = "fig01_phase2_success_rates_professional.pdf"
+line 91: out_png = "fig01_phase2_success_rates_professional.png"
+line 20: # B5D positive-evidence data ONLY
+
+-------------------- .\make_fig03_B5E_normalized_residual.py --------------------
+line 194: ax.set_title("Normalized terminal-residual diagnostic")
+line 204: fig.savefig(pdf_path, bbox_inches="tight")
+line 205: fig.savefig(png_path, dpi=300, bbox_inches="tight")
+line 18: - fig03_B5E_terminal_error_diagnostic_professional.pdf
+line 19: - fig03_B5E_terminal_error_diagnostic_professional.png
+line 56: default="fig03_B5E_terminal_error_diagnostic_professional",
+line 3: make_fig03_B5E_normalized_residual.py
+line 6: - Recreate Fig. 4 as a normalized B5E terminal-residual diagnostic.
+line 18: - fig03_B5E_terminal_error_diagnostic_professional.pdf
+line 19: - fig03_B5E_terminal_error_diagnostic_professional.png
+line 20: - b5e_normalized_terminal_residuals.csv
+line 52: ap.add_argument("--input", required=True, help="B5E summary/by-vehicle CSV file")
+line 56: default="fig03_B5E_terminal_error_diagnostic_professional",
+line 90: "b5e_case_id",
+line 202: csv_path = outdir / "b5e_normalized_terminal_residuals.csv"
+
+-------------------- .\make_fig03_B5E_normalized_residual_from_runs.py --------------------
+line 385: ax.set_title("Normalized terminal-residual diagnostic")
+line 399: fig.savefig(pdf_path, bbox_inches="tight")
+line 400: fig.savefig(png_path, dpi=300, bbox_inches="tight")
+line 40: - fig03_B5E_terminal_error_diagnostic_professional.pdf
+line 41: - fig03_B5E_terminal_error_diagnostic_professional.png
+line 330: ap.add_argument("--outname", default="fig03_B5E_terminal_error_diagnostic_professional")
+line 3: make_fig03_B5E_normalized_residual_from_runs.py
+line 17: 2) B5E run table CSV:
+line 40: - fig03_B5E_terminal_error_diagnostic_professional.pdf
+line 41: - fig03_B5E_terminal_error_diagnostic_professional.png
+line 42: - b5e_normalized_terminal_residuals.csv
+line 44: Example, if you have a B5E by-run table:
+line 45: python make_fig03_B5E_normalized_residual_from_runs.py ^
+line 46: --input ".\\store\\data_saved\\phase2_B5E_by_run.csv" ^
+line 50: python make_fig03_B5E_normalized_residual_from_runs.py ^
+line 51: --input ".\\store\\data_saved\\phase2_B5E_by_vehicle_all.csv" ^
+line 328: ap.add_argument("--input", required=True, help="B5E by-run table or terminal metrics CSV")
+line 330: ap.add_argument("--outname", default="fig03_B5E_terminal_error_diagnostic_professional")
+line 351: missing_path = outdir / "b5e_normalized_terminal_residuals_missing_cases.csv"
+line 359: print("  1) A B5E by_vehicle/terminal_metrics CSV containing taem_h_err, taem_v_err, taem_s_go_err")
+line 360: print("  2) The actual B5E run trajectory CSVs referenced by the 'csv' column")
+line 397: csv_path = outdir / "b5e_normalized_terminal_residuals.csv"
+
+-------------------- .\phase2_B6_figure_polish_package.py --------------------
+line 194: ax.set_title("Validated bounded local U3 envelope evidence")
+line 226: ax.set_title("Boundary-diagnostic summary")
+line 264: ax.set_title(title)
+line 292: ax.set_title("long-propagation range-closure diagnostic")
+line 394: ax.set_title("Representative failure-boundary ground track")
+line 174: fig.savefig(png, dpi=300, bbox_inches="tight")
+line 175: fig.savefig(pdf, bbox_inches="tight")
+line 92: B5D = {
+line 112: Path("store/data_saved/phase2_B5D_tight_local_envelope_validation_report"),
+line 183: B5D["case_success"] / B5D["case_total"],
+line 184: B5D["vehicle_success"] / B5D["vehicle_total"],
+line 402: text = """Figure 1. Validated bounded local U3 envelope evidence. The B5D campaign provides the primary positive evidence with 49/50 case-level success and 149/150 vehicle-level success. B5E and B5F are shown only as strict-pass references and are not interpreted as positive universality evidence.
+line 13: 4) Figures 1-4 are always written if B5E/B5F summary CSVs exist.
+line 99: B5E_CANDIDATES = [
+line 100: Path("store/data_saved/phase2_B5E_mis0_corner_robustness_refinement_bounded_diagnostic/phase2_B5E_by_run.csv"),
+line 101: Path("store/data_saved/phase2_B5E_mis0_corner_robustness_refinement_bounded_diagnostic/phase2_B5E_best_candidates.csv"),
+line 102: Path("phase2_B5E_by_run.csv"),
+line 113: Path("store/data_saved/phase2_B5E_mis0_corner_robustness_refinement_bounded_diagnostic"),
+line 180: def figure1_success_rates(outdir: Path, b5e: pd.DataFrame | None, b5f: pd.DataFrame | None):
+line 185: float(bool_col(b5e, "strict_pass").mean()) if b5e is not None and len(b5e) else np.nan,
+line 203: def figure2_boundary_summary(outdir: Path, b5e: pd.DataFrame | None, b5f: pd.DataFrame | None):
+line 208: for df in [b5e, b5f]:
+line 241: def rank_b5e(df: pd.DataFrame, n: int = 12) -> pd.DataFrame:
+line 254: d = rank_b5e(df, 12)
+line 338: "phase2_B5E_by_run.csv",
+line 339: "phase2_B5E_best_candidates.csv",
+line 402: text = """Figure 1. Validated bounded local U3 envelope evidence. The B5D campaign provides the primary positive evidence with 49/50 case-level success and 149/150 vehicle-level success. B5E and B5F are shown only as strict-pass references and are not interpreted as positive universality evidence.
+line 404: Figure 2. Boundary-diagnostic summary. B5E and B5F delimit the current certified envelope. The B5F timeout rate indicates that the mis0-left corner remains outside the presently validated operating region.
+line 406: Figure 3a. B5E terminal height-error diagnostic. The best-ranked B5E candidates are shown using absolute terminal height error in kilometers.
+line 408: Figure 3b. B5E terminal velocity-error diagnostic. The best-ranked B5E candidates are shown using absolute terminal velocity error in km/s.
+line 410: Figure 3c. B5E terminal range-to-go error diagnostic. The best-ranked B5E candidates are shown using absolute terminal s_go error in kilometers.
+line 429: b5e_path = first_existing([root / p for p in B5E_CANDIDATES])
+line 431: b5e = safe_read_csv(b5e_path)
+line 436: "b5e_source": str(b5e_path) if b5e_path else None,
+line 442: manifest["generated_files"] += figure1_success_rates(outdir, b5e, b5f)
+line 443: manifest["generated_files"] += figure2_boundary_summary(outdir, b5e, b5f)
+line 445: if b5e is not None and len(b5e):
+line 446: if "taem_h_err_final" in b5e.columns:
+line 447: manifest["generated_files"] += figure3_error_bar(outdir, b5e, "taem_h_err_final", "|h error| (km)", "fig03a_b5e_height_error_polished", "B5E terminal height-error diagnostic", 1000.0)
+line 448: if "taem_v_err_final" in b5e.columns:
+line 449: manifest["generated_files"] += figure3_error_bar(outdir, b5e, "taem_v_err_final", "|v error| (km/s)", "fig03b_b5e_velocity_error_polished", "B5E terminal velocity-error diagnostic", 1000.0)
+line 450: if "taem_s_go_err_final" in b5e.columns:
+line 451: manifest["generated_files"] += figure3_error_bar(outdir, b5e, "taem_s_go_err_final", "|s_go error| (km)", "fig03c_b5e_sgo_error_polished", "B5E terminal range-to-go error diagnostic", 1000.0)
+line 453: manifest["warnings"].append("B5E CSV not found or empty; Figure 3 series skipped.")
+line 12: 3) B5F timeout/no-CSV annotation no longer raises All-NaN warnings.
+line 13: 4) Figures 1-4 are always written if B5E/B5F summary CSVs exist.
+line 105: B5F_CANDIDATES = [
+line 106: Path("store/data_saved/phase2_B5F_mis0_long_propagation_pathspec_audit/phase2_B5F_by_run.csv"),
+line 107: Path("store/data_saved/phase2_B5F_mis0_long_propagation_pathspec_audit/phase2_B5F_best_candidates.csv"),
+line 108: Path("phase2_B5F_by_run.csv"),
+line 114: Path("store/data_saved/phase2_B5F_mis0_long_propagation_pathspec_audit"),
+line 180: def figure1_success_rates(outdir: Path, b5e: pd.DataFrame | None, b5f: pd.DataFrame | None):
+line 186: float(bool_col(b5f, "strict_pass").mean()) if b5f is not None and len(b5f) else np.nan,
+line 203: def figure2_boundary_summary(outdir: Path, b5e: pd.DataFrame | None, b5f: pd.DataFrame | None):
+line 208: for df in [b5e, b5f]:
+line 275: def figure4_b5f_range(outdir: Path, b5f: pd.DataFrame):
+line 276: d = b5f.copy()
+line 311: return save_fig(fig, outdir, "fig04_b5f_range_closure_polished")
+line 340: "phase2_B5F_by_run.csv",
+line 341: "phase2_B5F_best_candidates.csv",
+line 402: text = """Figure 1. Validated bounded local U3 envelope evidence. The B5D campaign provides the primary positive evidence with 49/50 case-level success and 149/150 vehicle-level success. B5E and B5F are shown only as strict-pass references and are not interpreted as positive universality evidence.
+line 404: Figure 2. Boundary-diagnostic summary. B5E and B5F delimit the current certified envelope. The B5F timeout rate indicates that the mis0-left corner remains outside the presently validated operating region.
+line 412: Figure 4. B5F long-propagation range-closure diagnostic. Cases with usable range data show the initial and final s_go values. Cases labelled TIMEOUT / NO CSV correspond to long-propagation runs that did not produce a usable terminal row.
+line 430: b5f_path = first_existing([root / p for p in B5F_CANDIDATES])
+line 432: b5f = safe_read_csv(b5f_path)
+line 437: "b5f_source": str(b5f_path) if b5f_path else None,
+line 442: manifest["generated_files"] += figure1_success_rates(outdir, b5e, b5f)
+line 443: manifest["generated_files"] += figure2_boundary_summary(outdir, b5e, b5f)
+line 455: if b5f is not None and len(b5f):
+line 456: manifest["generated_files"] += figure4_b5f_range(outdir, b5f)
+line 458: manifest["warnings"].append("B5F CSV not found or empty; Figure 4 skipped.")
+line 394: ax.set_title("Representative failure-boundary ground track")
+line 414: Figure 5. Representative failure-boundary ground track. This trajectory is shown as a representative diagnostic/failure-boundary path and should not be interpreted as a nominal-success trajectory.
+line 220: ax.bar(x - width / 2, non_pass, width, label="No strict TAEM closure")
+line 221: ax.bar(x + width / 2, timeout, width, label="Timeout or no terminal output")
+
+-------------------- .\phase2_B6_make_publication_figures.py --------------------
+line 207: ax.set_title("Validated bounded local U3 envelope evidence", pad=12)
+line 256: ax.set_title("Boundary-diagnostic summary", pad=12)
+line 310: ax.set_title("corner-case terminal error diagnostic", pad=12)
+line 362: ax.set_title("Long-propagation range-closure audit", pad=12)
+line 450: ax.set_title("Representative successful ground track", pad=12)
+line 490: ax.set_title("Representative successful 3D trajectory", pad=12)
+line 162: fig.savefig(png, dpi=300, bbox_inches="tight")
+line 163: fig.savefig(pdf, bbox_inches="tight")
+line 215: paths = save_figure(fig, outdir, "fig01_phase2_success_rates_professional")
+line 268: paths = save_figure(fig, outdir, "fig02_failure_boundary_summary_professional")
+line 321: paths = save_figure(fig, outdir, "fig03_B5E_terminal_error_diagnostic_professional")
+line 380: paths = save_figure(fig, outdir, "fig04_B5F_range_closure_audit_professional")
+line 17: 5. Representative successful ground track, if a B5D success CSV is available
+line 18: 6. Representative successful 3D trajectory, if a B5D success CSV is available
+line 24: python .\phase2_B6_make_publication_figures.py --success-csv "path\to\B5D_combined.csv"
+line 43: B5D_MANUAL = {
+line 64: Path("store/data_saved/phase2_B5D_tight_local_envelope_validation/case_reports/b5c000_hp173p144_vm1p127/phase2_B5A_hp173p144m_vm1p12688mps_sp2deg_combined.csv"),
+line 65: Path("store/data_saved/phase2_B5D_tight_local_envelope_validation_report/case_reports/b5c000_hp173p144_vm1p127/phase2_B5A_hp173p144m_vm1p12688mps_sp2deg_combined.csv"),
+line 181: b5d_case_rate = safe_rate(B5D_MANUAL["case_success"], B5D_MANUAL["case_total"])
+line 182: b5d_vehicle_rate = safe_rate(B5D_MANUAL["vehicle_success"], B5D_MANUAL["vehicle_total"])
+line 198: rates = [b5d_case_rate, b5d_vehicle_rate, b5e_rate, b5f_rate]
+line 221: "Validated bounded local U3 envelope evidence. B5D is used as the positive bounded-envelope "
+line 460: "caption": "Representative successful ground track selected from the B5D tight-local-envelope evidence set.",
+line 527: "caption": "Representative successful 3D trajectory selected from the B5D tight-local-envelope evidence set.",
+line 585: "Representative trajectory figures skipped because no known B5D success trajectory CSV was found.\n"
+line 586: "Use --success-csv to provide a B5D combined CSV manually.\n",
+line 15: 3. B5E corner-case terminal-error diagnostic
+line 52: B5E_CANDIDATES = [
+line 53: Path("store/data_saved/phase2_B5E_mis0_corner_robustness_refinement_bounded_diagnostic/phase2_B5E_by_run.csv"),
+line 54: Path("store/data_saved/phase2_B5E_mis0_corner_robustness_refinement_rescue_soft_first/phase2_B5E_by_run.csv"),
+line 55: Path("phase2_B5E_by_run.csv"),
+line 180: def make_success_rates(outdir: Path, b5e: Optional[pd.DataFrame], b5f: Optional[pd.DataFrame]) -> Dict[str, Any]:
+line 184: b5e_rate = np.nan
+line 185: if b5e is not None and len(b5e) > 0 and "strict_pass" in b5e.columns:
+line 186: b5e_rate = float(bool_series(b5e, "strict_pass").mean())
+line 198: rates = [b5d_case_rate, b5d_vehicle_rate, b5e_rate, b5f_rate]
+line 222: "evidence, whereas B5E and B5F are retained as boundary diagnostics."
+line 239: def make_failure_summary(outdir: Path, b5e: Optional[pd.DataFrame], b5f: Optional[pd.DataFrame]) -> Dict[str, Any]:
+line 241: b5e_fail, b5e_timeout = _failure_and_timeout_rates(b5e)
+line 243: fail_rates = [b5e_fail, b5f_fail]
+line 244: timeout_rates = [b5e_timeout, b5f_timeout]
+line 274: "Boundary-diagnostic summary for B5E and B5F. The figure separates the absence of "
+line 284: def make_b5e_terminal_error(outdir: Path, b5e: Optional[pd.DataFrame]) -> Optional[Dict[str, Any]]:
+line 285: if b5e is None or len(b5e) == 0:
+line 288: if not all(c in b5e.columns for c in required):
+line 291: d = b5e.copy()
+line 321: paths = save_figure(fig, outdir, "fig03_B5E_terminal_error_diagnostic_professional")
+line 324: "title": "B5E corner-case terminal error diagnostic",
+line 327: "B5E corner-case terminal-error diagnostic. The range-to-go term is reported explicitly "
+line 542: ap.add_argument("--b5e-csv", default=None)
+line 552: b5e_path = Path(args.b5e_csv) if args.b5e_csv else first_existing(B5E_CANDIDATES, root)
+line 553: if b5e_path and not b5e_path.is_absolute():
+line 554: b5e_path = root / b5e_path
+line 559: b5e = read_csv(b5e_path)
+line 563: figures.append(make_success_rates(outdir, b5e, b5f))
+line 564: figures.append(make_failure_summary(outdir, b5e, b5f))
+line 565: fig3 = make_b5e_terminal_error(outdir, b5e)
+line 596: "b5e_csv": str(b5e_path) if b5e_path else None,
+line 608: print("[B6-PUB-FAST-v3] B5E CSV:", b5e_path)
+line 58: B5F_CANDIDATES = [
+line 59: Path("store/data_saved/phase2_B5F_mis0_long_propagation_pathspec_audit/phase2_B5F_by_run.csv"),
+line 60: Path("phase2_B5F_by_run.csv"),
+line 180: def make_success_rates(outdir: Path, b5e: Optional[pd.DataFrame], b5f: Optional[pd.DataFrame]) -> Dict[str, Any]:
+line 188: b5f_rate = np.nan
+line 189: if b5f is not None and len(b5f) > 0 and "strict_pass" in b5f.columns:
+line 190: b5f_rate = float(bool_series(b5f, "strict_pass").mean())
+line 198: rates = [b5d_case_rate, b5d_vehicle_rate, b5e_rate, b5f_rate]
+line 222: "evidence, whereas B5E and B5F are retained as boundary diagnostics."
+line 239: def make_failure_summary(outdir: Path, b5e: Optional[pd.DataFrame], b5f: Optional[pd.DataFrame]) -> Dict[str, Any]:
+line 242: b5f_fail, b5f_timeout = _failure_and_timeout_rates(b5f)
+line 243: fail_rates = [b5e_fail, b5f_fail]
+line 244: timeout_rates = [b5e_timeout, b5f_timeout]
+line 274: "Boundary-diagnostic summary for B5E and B5F. The figure separates the absence of "
+line 337: def make_b5f_range_closure(outdir: Path, b5f: Optional[pd.DataFrame]) -> Optional[Dict[str, Any]]:
+line 338: if b5f is None or len(b5f) == 0:
+line 340: if "s_go_start" not in b5f.columns or "s_go_final" not in b5f.columns:
+line 343: d = b5f.copy().head(min(4, len(b5f))).copy()
+line 380: paths = save_figure(fig, outdir, "fig04_B5F_range_closure_audit_professional")
+line 543: ap.add_argument("--b5f-csv", default=None)
+line 555: b5f_path = Path(args.b5f_csv) if args.b5f_csv else first_existing(B5F_CANDIDATES, root)
+line 556: if b5f_path and not b5f_path.is_absolute():
+line 557: b5f_path = root / b5f_path
+line 560: b5f = read_csv(b5f_path)
+line 563: figures.append(make_success_rates(outdir, b5e, b5f))
+line 564: figures.append(make_failure_summary(outdir, b5e, b5f))
+line 568: fig4 = make_b5f_range_closure(outdir, b5f)
+line 597: "b5f_csv": str(b5f_path) if b5f_path else None,
+line 609: print("[B6-PUB-FAST-v3] B5F CSV:", b5f_path)
+line 250: ax.bar(x - width / 2, np.nan_to_num(fail_rates, nan=0.0), width, label="No strict TAEM closure")
+

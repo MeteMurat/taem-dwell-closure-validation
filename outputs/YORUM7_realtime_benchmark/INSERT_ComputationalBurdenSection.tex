@@ -1,0 +1,14 @@
+\subsection{Computational-burden and real-time audit}
+\label{subsec:computational_burden_audit}
+
+Because the proposed validation layer is intended for online entry-guidance assessment, the computational burden of the guidance--logging--event-detection workflow was audited in addition to the closure statistics. The audit separates two costs. The first is the end-to-end wall-clock time required to execute the three-role guidance and propagation workflow. The second is the cost of reconstructing TAEM box membership and replaying the dwell-confirmed event detector from saved trajectory logs. The latter is the computational overhead added by the proposed validation logic and is distinct from the trajectory propagation itself.
+
+For a run with wall-clock time \(t_{\mathrm{wall}}\), logged simulated-time span \(T_{\mathrm{sim}}\), and \(N_{\mathrm{row}}\) saved trajectory samples, the real-time factor is computed as
+\[
+\chi_{\mathrm{RT}}=\frac{T_{\mathrm{sim}}}{t_{\mathrm{wall}}},
+\]
+and the end-to-end logged-sample cost is \(1000\,t_{\mathrm{wall}}/N_{\mathrm{row}}\) ms per saved row. For the event-replay audit, the per-row dwell-detection cost is computed from the time required to reconstruct the in-box sequence and update the sample-count dwell latch over all logged rows. The dwell/event replay is a linear pass over the logged samples, with \(O(N_vK)\) complexity for \(N_v\) vehicle roles and \(K\) samples per role; it does not require optimization, root finding, or trajectory repropagation.
+
+The measured values are summarized in Table~\ref{tab:computational_burden_audit}. On the tested software and hardware configuration, the timed three-role execution required a median wall-clock time of N/A~s for a logged simulated-time span of N/A~s, corresponding to a real-time factor of N/A. The dwell/event replay over 875109 logged rows required 0.499548~s excluding CSV input/output, corresponding to 0.571~\(\mu\)s per row. Thus, the event-detection layer is negligible relative to the trajectory propagation and guidance computation in the present implementation.
+
+These timings should be interpreted as an implementation-level reproducibility audit, not as certification of a flight processor or hard real-time avionics implementation. The code used in this study is a Python research implementation with CSV logging and diagnostic bookkeeping retained for auditability. Nevertheless, the measured event-detection cost shows that the dwell-confirmed TAEM closure logic itself is computationally light: it requires only component-wise tolerance checks, an integer dwell counter, and a latch update at each logged sample.

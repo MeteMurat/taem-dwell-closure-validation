@@ -1,0 +1,33 @@
+{
+  "environment": {
+    "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 142 Stepping 12, GenuineIntel",
+    "machine": "AMD64",
+    "cwd": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master"
+  },
+  "postprocess": {
+    "n_files": 50,
+    "n_rows_total": 875109,
+    "n_vehicles_total_rows": 150,
+    "processing_excluding_io_s_total": 0.49954839999918477,
+    "total_including_io_s_total": 29.99602629999663,
+    "rows_per_s_excluding_io_weighted": 1751800.2259669497,
+    "us_per_row_excluding_io_weighted": 0.5708413466198894,
+    "rows_per_s_including_io_weighted": 29174.164312560904,
+    "us_per_row_including_io_weighted": 34.2769029915092,
+    "median_file_processing_excluding_io_s": 0.008847149999837711,
+    "median_file_total_including_io_s": 0.44434434999993755
+  },
+  "simulation": {
+    "run_main_used": false,
+    "wall_s_median": NaN,
+    "real_time_factor_median": NaN,
+    "ms_per_logged_row_median": NaN,
+    "row_count_median": NaN,
+    "sim_span_max_s_median": NaN
+  },
+  "csv_patterns": [
+    ".\\store\\data_saved\\phase2_B5D_tight_local_envelope_validation\\combined\\*.csv"
+  ]
+}

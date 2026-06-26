@@ -1,0 +1,11 @@
+Figure 1. Validated bounded local U3 envelope evidence. B5D is used as the positive bounded-envelope evidence, whereas B5E and B5F are retained as boundary diagnostics.
+
+Figure 2. Boundary-diagnostic summary for B5E and B5F. The figure separates the absence of strict TAEM closure from timeout or missing-terminal-output cases.
+
+Figure 3. B5E corner-case terminal-error diagnostic. The range-to-go term is reported explicitly without code-style variable notation in the figure legend.
+
+Figure 4. Long-propagation range-closure audit. The legend is positioned away from the main bars and the range-to-go terminology is presented in publication style.
+
+Figure 5. Representative successful ground track selected from the B5D tight-local-envelope evidence set.
+
+Figure 6. Representative successful 3D trajectory selected from the B5D tight-local-envelope evidence set.

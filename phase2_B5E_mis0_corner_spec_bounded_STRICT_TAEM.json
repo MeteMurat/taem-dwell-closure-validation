@@ -1,0 +1,105 @@
+{
+  "experiment": "phase2_B5E_mis0_corner_robustness_refinement_BOUNDED_DIAGNOSTIC",
+  "output_dir": "store/data_saved/phase2_B5E_mis0_corner_robustness_refinement_bounded_diagnostic",
+  "python_exe": "python",
+  "run_script": "multi_main.py",
+  "target": {
+    "lon_deg": 75.0,
+    "lat_deg": -25.0
+  },
+  "base_initial_state": {
+    "longitude_deg": 0.0,
+    "latitude_deg": 50.0,
+    "height_m": 80000.0,
+    "velocity_mps": 7000.0,
+    "path_angle_deg": 0.0,
+    "heading_angle_deg": 120.0
+  },
+  "taem_target": {
+    "height_m": 25000.0,
+    "velocity_mps": 2000.0,
+    "s_go_m": 50000.0,
+    "t_end_s": 2150.0
+  },
+  "mis0_role": {
+    "logical_mis_id": 0,
+    "role_name": "mis0_left_corner_role_rescue_soft_first",
+    "role_heading_delta_deg": -2.0,
+    "sgn_ini_override": -1
+  },
+  "corner_grid": {
+    "height_delta_m": [
+      0.0,
+      500.0
+    ],
+    "velocity_delta_mps": [
+      -10.0,
+      0.0,
+      10.0
+    ]
+  },
+  "candidate_pathspecs": [
+    {
+      "candidate_id": "C05_min_left_6deg_early_fade",
+      "psi_bias_deg": -6.0,
+      "psi_bias_sgo_on_m": 7000000.0,
+      "psi_bias_sgo_off_m": 4500000.0,
+      "psi_bias_alt_on_m": 50000.0,
+      "psi_bias_alt_off_m": 30000.0
+    },
+    {
+      "candidate_id": "C04_soft_left_8deg_early_fade",
+      "psi_bias_deg": -8.0,
+      "psi_bias_sgo_on_m": 7000000.0,
+      "psi_bias_sgo_off_m": 4500000.0,
+      "psi_bias_alt_on_m": 50000.0,
+      "psi_bias_alt_off_m": 30000.0
+    },
+    {
+      "candidate_id": "C03_soft_left_8deg",
+      "psi_bias_deg": -8.0,
+      "psi_bias_sgo_on_m": 7000000.0,
+      "psi_bias_sgo_off_m": 4000000.0,
+      "psi_bias_alt_on_m": 50000.0,
+      "psi_bias_alt_off_m": 25000.0
+    },
+    {
+      "candidate_id": "C02_soft_left_10deg_early_fade",
+      "psi_bias_deg": -10.0,
+      "psi_bias_sgo_on_m": 7000000.0,
+      "psi_bias_sgo_off_m": 4500000.0,
+      "psi_bias_alt_on_m": 50000.0,
+      "psi_bias_alt_off_m": 30000.0
+    },
+    {
+      "candidate_id": "C01_soft_left_10deg",
+      "psi_bias_deg": -10.0,
+      "psi_bias_sgo_on_m": 7000000.0,
+      "psi_bias_sgo_off_m": 4000000.0,
+      "psi_bias_alt_on_m": 50000.0,
+      "psi_bias_alt_off_m": 25000.0
+    }
+  ],
+  "acceptance": {
+    "strict_success_columns": [
+      "taem_success_latched",
+      "taem_reached_ever",
+      "taem_reached_event",
+      "taem_reached",
+      "taem_in_box"
+    ],
+    "strict_end_reason": "taem_dwell_reached",
+    "reject_if_close_pass_escape": true,
+    "reference_tolerances": {
+      "h_tol_m": 3000.0,
+      "v_tol_mps": 100.0,
+      "s_go_tol_m": 20000.0
+    }
+  },
+  "generated_maxiter": 30000,
+  "timeout_sec": 600,
+  "notes": [
+    "Bounded diagnostic mode: generated temporary multiset.py uses a finite MAXITER so multi_main.py can return and write CSV even when TAEM latch is not reached.",
+    "Use --generated-maxiter 5000 for a quick partial-CSV smoke test, then 30000 for the bounded diagnostic campaign."
+  ]
+}

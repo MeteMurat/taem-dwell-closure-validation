@@ -1,0 +1,21 @@
+{
+  "n_files": 50,
+  "n_vehicle_logs": 150,
+  "logging_audit_pass": 150,
+  "logging_audit_fail": 0,
+  "replayed_strict_success": 149,
+  "terminal_reason_ok": 149,
+  "end_reason_without_replayed_dwell": 0,
+  "success_flag_without_replayed_dwell": 0,
+  "close_pass_conflicts": 0,
+  "parameters": {
+    "h_taem": 25000.0,
+    "v_taem": 2000.0,
+    "s_taem": 50000.0,
+    "eps_h": 3000.0,
+    "eps_v": 100.0,
+    "eps_s": 20000.0,
+    "n_dwell": 3,
+    "terminal_reason": "taem_dwell_reached"
+  }
+}

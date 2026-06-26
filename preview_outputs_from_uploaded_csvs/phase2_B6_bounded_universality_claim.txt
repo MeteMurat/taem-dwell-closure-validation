@@ -1,0 +1,21 @@
+Recommended universality wording
+
+The proposed guidance framework is not claimed to be globally universal over all
+initial dispersions, route-shaping choices, and terminal-corner cases. Instead,
+the evidence supports a bounded local-universality claim over the tight U3
+envelope. In the B5D tight local-envelope validation, the case-level success
+rate is 98.00%, while the vehicle-level success rate is 99.33%.
+This supports a strong local U3 envelope result.
+
+The B5E and B5F campaigns should be retained as failure-boundary diagnostics
+rather than negative evidence against the bounded claim. B5E achieved a
+case-level pass rate of 0.00%, and B5F achieved a case-level pass rate of
+0.00%. These campaigns identify the mis0-left corner as outside the
+currently certified envelope under the present guidance phase-transition and
+terminal-capture logic.
+
+Manuscript-safe claim:
+"The method demonstrates bounded local U3 universality within the validated
+tight envelope, while the mis0-left corner cases define the current
+reachability boundary. We therefore do not claim global universality; instead,
+we report an explicitly bounded and reproducible domain of validity."

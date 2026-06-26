@@ -1,0 +1,26 @@
+﻿Patch started: 06/26/2026 08:39:06
+[NO CHANGE] D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\audit_logging_reliability.py
+[NO CHANGE] D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\audit_u3_envelope_selection.py
+[NO CHANGE] D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\make_3d_trajectory_video.py
+[PATCHED] D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\make_fig01_b5d_success_rates.py
+  Backup: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\make_fig01_b5d_success_rates.py.bak_figurelabels_20260626_083840
+[PATCHED] D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\make_fig03_B5E_normalized_residual.py
+  Backup: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\make_fig03_B5E_normalized_residual.py.bak_figurelabels_20260626_083840
+[PATCHED] D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\make_fig03_B5E_normalized_residual_from_runs.py
+  Backup: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\make_fig03_B5E_normalized_residual_from_runs.py.bak_figurelabels_20260626_083840
+[NO CHANGE] D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B5E_mis0_corner_orchestrator.py
+[NO CHANGE] D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B5E_mis0_corner_orchestrator_bounded.py
+[NO CHANGE] D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B5F_mis0_reachability_orchestrator.py
+[NO CHANGE] D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B6_bounded_universality_report.py
+[PATCHED] D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B6_figure_polish_package.py
+  Backup: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B6_figure_polish_package.py.bak_figurelabels_20260626_083840
+[PATCHED] D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B6_make_publication_figures.py
+  Backup: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B6_make_publication_figures.py.bak_figurelabels_20260626_083840
+[NO CHANGE] D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B6_trajectory_figures.py
+
+Changed Python files: 5
+  D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\make_fig01_b5d_success_rates.py
+  D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\make_fig03_B5E_normalized_residual.py
+  D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\make_fig03_B5E_normalized_residual_from_runs.py
+  D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B6_figure_polish_package.py
+  D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B6_make_publication_figures.py

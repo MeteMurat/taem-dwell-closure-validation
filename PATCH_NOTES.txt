@@ -1,0 +1,29 @@
+PATCH_NOTES (TAEM dwell-event instrumentation + reporting markers)
+==============================================================
+
+Files updated:
+- settings.py, multiset.py:
+  - Added TAEM_TOLERANCES and TAEM_DWELL_SEC constants
+  - Appended TAEM channels to GUIDE_SAVE_PARAM:
+    taem_in_box, taem_reached, taem_dwell_time_s, taem_t_global, taem_err_h_m, taem_err_v_mps, taem_err_sgo_m
+
+- customSimulation.py:
+  - Added update_taem_event() helper and call in save_data()
+  - Replaced mutable default args in init() with None + guarded instantiation
+
+- multiMissileSimInstance.py, multiMissileSimInstance_MVE.py:
+  - Added update_taem_event() helper and per-vehicle call in save_data()
+  - Ensured taem_* keys are always exported to CSV
+  - Replaced mutable default args in init() with None + guarded instantiation
+
+- plot_csv_report.py, plot_csv_report-23-01.py:
+  - If taem_reached exists, adds a vertical marker at first TAEM event in time series
+  - Marks TAEM point on ground track
+
+- customGuidance.py:
+  - Replaced meta={} with meta=None + guard in functions (keeps behavior but removes mutable-default hazard)
+  - Replaced end_guide default Missile() args with None + guard
+  - Logs cos_delta_psi alongside delta_psi
+
+Notes:
+- These changes do NOT modify the underlying guidance law; they add instrumentation to quantify TAEM attainment.

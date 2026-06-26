@@ -1,0 +1,297 @@
+﻿Real manuscript figure source scan
+Root: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master
+Time: 06/26/2026 09:13:43
+
+Files scanned: 176
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\audit_logging_reliability.py
+  line 12: python audit_logging_reliability.py --input "outputs\\B5D\\*.csv" --outdir "outputs\\B5D_audit"
+  line 307: ap.add_argument("--input", nargs="+", required=True, help="CSV file(s) or glob(s), e.g. outputs/B5D/**/*.csv")
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\audit_u3_envelope_selection.py
+  line 8: Post-process archived B5A/B5B/B5D/B5E/B5F CSV logs and audit whether the final
+  line 41: STAGE_ORDER = ["B5D", "B5A", "B5B", "B5C", "B5E", "B5F", "B4", "B3", "B2", "B1"]
+  line 75: return "B5D"
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\B6_preview_stdout.txt
+  line 11: B5D_tight_local_U3_envelope  manual_stats               50                   0.98           0.993333          0.00 B5C_LOCAL_ENVELOPE_SUPPORTED                                                 Use as the main bounded-universality evidence.
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\csv_list_full.txt
+  line 45: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\PHASE2_B5D_TIGHT_LOCAL_ENVELOPE_PASS_FREEZE\phase2_B5C_case_summary.csv                                                                                                         1.05.2026 18:21:45     4947
+  line 46: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\PHASE2_B5D_TIGHT_LOCAL_ENVELOPE_PASS_FREEZE\phase2_B5C_by_vehicle_role_summary.csv                                                                                              1.05.2026 18:21:45       83
+  line 47: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation_report\phase2_B5C_case_summary.csv                                                                                                   1.05.2026 18:21:45     4947
+  line 48: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation_report\phase2_B5C_by_vehicle_role_summary.csv                                                                                        1.05.2026 18:21:45       83
+  line 49: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\PHASE2_B5D_TIGHT_LOCAL_ENVELOPE_PASS_FREEZE\phase2_B5C_by_case_all.csv                                                                                                          1.05.2026 18:21:45    41979
+  line 50: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation_report\phase2_B5C_by_case_all.csv                                                                                                    1.05.2026 18:21:45    41979
+  line 51: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\PHASE2_B5D_TIGHT_LOCAL_ENVELOPE_PASS_FREEZE\phase2_B5C_by_vehicle_all.csv                                                                                                       1.05.2026 18:21:45   137191
+  line 52: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation_report\phase2_B5C_by_vehicle_all.csv                                                                                                 1.05.2026 18:21:45   137191
+  line 53: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c049_hp64p217_vp6p242\phase2_B5A_by_case.csv                                                                          1.05.2026 18:21:45      949
+  line 54: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c049_hp64p217_vp6p242\phase2_B5A_by_vehicle_all.csv                                                                   1.05.2026 18:21:45     3060
+  line 55: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\combined\b5c049_hp64p217_vp6p242_combined.csv                                                                                        1.05.2026 18:21:45 15710719
+  line 56: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c049_hp64p217_vp6p242\hp64p2172m_vp6p24229mps_sp2deg\hp64p2172m_vp6p24229mps_sp2deg_numeric_diff_by_pair.csv          1.05.2026 18:21:44     3359
+  line 57: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c049_hp64p217_vp6p242\hp64p2172m_vp6p24229mps_sp2deg\phase2_B5A_hp64p2172m_vp6p24229mps_sp2deg_by_vehicle.csv         1.05.2026 18:21:44     3060
+  line 58: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c049_hp64p217_vp6p242\hp64p2172m_vp6p24229mps_sp2deg\mis2\phase2_B1_by_vehicle.csv                                    1.05.2026 18:21:38     3047
+  line 59: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c049_hp64p217_vp6p242\hp64p2172m_vp6p24229mps_sp2deg\mis1\phase2_B1_by_vehicle.csv                                    1.05.2026 18:21:32     3047
+  line 60: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c049_hp64p217_vp6p242\hp64p2172m_vp6p24229mps_sp2deg\mis0\phase2_B1_by_vehicle.csv                                    1.05.2026 18:21:26     3047
+  line 61: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c049_hp64p217_vp6p242\phase2_B5A_hp64p2172m_vp6p24229mps_sp2deg_combined.csv                                          1.05.2026 18:21:24 15710719
+  line 62: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_runs\b5c049_hp64p217_vp6p242\hp64p2172m_vp6p24229mps_sp2deg\phase2_B5A_hp64p2172m_vp6p24229mps_sp2deg_scaffold_mis2.csv         1.05.2026 18:21:23  5238852
+  line 63: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_runs\b5c049_hp64p217_vp6p242\hp64p2172m_vp6p24229mps_sp2deg\phase2_B5A_hp64p2172m_vp6p24229mps_sp2deg_single_runner_mis2.csv    1.05.2026 18:21:22  4214306
+  line 64: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_runs\b5c049_hp64p217_vp6p242\hp64p2172m_vp6p24229mps_sp2deg\phase2_B5A_hp64p2172m_vp6p24229mps_sp2deg_scaffold_mis1.csv         1.05.2026 18:20:43  5223240
+  line 65: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_runs\b5c049_hp64p217_vp6p242\hp64p2172m_vp6p24229mps_sp2deg\phase2_B5A_hp64p2172m_vp6p24229mps_sp2deg_single_runner_mis1.csv    1.05.2026 18:20:42  4216262
+  line 66: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_runs\b5c049_hp64p217_vp6p242\hp64p2172m_vp6p24229mps_sp2deg\phase2_B5A_hp64p2172m_vp6p24229mps_sp2deg_scaffold_mis0.csv         1.05.2026 18:20:07  5253847
+  line 67: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_runs\b5c049_hp64p217_vp6p242\hp64p2172m_vp6p24229mps_sp2deg\phase2_B5A_hp64p2172m_vp6p24229mps_sp2deg_single_runner_mis0.csv    1.05.2026 18:20:06  4237797
+  line 68: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c048_hp380p801_vm0p950\phase2_B5A_by_case.csv                                                                         1.05.2026 18:19:28      960
+  line 69: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c048_hp380p801_vm0p950\phase2_B5A_by_vehicle_all.csv                                                                  1.05.2026 18:19:28     3082
+  line 70: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\combined\b5c048_hp380p801_vm0p950_combined.csv                                                                                       1.05.2026 18:19:28 15747829
+  line 71: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c048_hp380p801_vm0p950\hp380p801m_vm0p949795mps_sp2deg\hp380p801m_vm0p949795mps_sp2deg_numeric_diff_by_pair.csv       1.05.2026 18:19:26     3351
+  line 72: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c048_hp380p801_vm0p950\hp380p801m_vm0p949795mps_sp2deg\phase2_B5A_hp380p801m_vm0p949795mps_sp2deg_by_vehicle.csv      1.05.2026 18:19:26     3082
+  line 73: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c048_hp380p801_vm0p950\hp380p801m_vm0p949795mps_sp2deg\mis2\phase2_B1_by_vehicle.csv                                  1.05.2026 18:19:22     3049
+  line 74: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c048_hp380p801_vm0p950\hp380p801m_vm0p949795mps_sp2deg\mis1\phase2_B1_by_vehicle.csv                                  1.05.2026 18:19:16     3049
+  line 75: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c048_hp380p801_vm0p950\hp380p801m_vm0p949795mps_sp2deg\mis0\phase2_B1_by_vehicle.csv                                  1.05.2026 18:19:08     3049
+  line 76: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c048_hp380p801_vm0p950\phase2_B5A_hp380p801m_vm0p949795mps_sp2deg_combined.csv                                        1.05.2026 18:19:04 15747829
+  line 77: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_runs\b5c048_hp380p801_vm0p950\hp380p801m_vm0p949795mps_sp2deg\phase2_B5A_hp380p801m_vm0p949795mps_sp2deg_scaffold_mis2.csv      1.05.2026 18:19:02  5245349
+  line 78: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_runs\b5c048_hp380p801_vm0p950\hp380p801m_vm0p949795mps_sp2deg\phase2_B5A_hp380p801m_vm0p949795mps_sp2deg_single_runner_mis2.csv 1.05.2026 18:19:01  4205941
+  line 79: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_runs\b5c048_hp380p801_vm0p950\hp380p801m_vm0p949795mps_sp2deg\phase2_B5A_hp380p801m_vm0p949795mps_sp2deg_scaffold_mis1.csv      1.05.2026 18:18:24  5251359
+  line 80: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_runs\b5c048_hp380p801_vm0p950\hp380p801m_vm0p949795mps_sp2deg\phase2_B5A_hp380p801m_vm0p949795mps_sp2deg_single_runner_mis1.csv 1.05.2026 18:18:24  4225152
+  line 81: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_runs\b5c048_hp380p801_vm0p950\hp380p801m_vm0p949795mps_sp2deg\phase2_B5A_hp380p801m_vm0p949795mps_sp2deg_scaffold_mis0.csv      1.05.2026 18:17:47  5256512
+  line 82: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_runs\b5c048_hp380p801_vm0p950\hp380p801m_vm0p949795mps_sp2deg\phase2_B5A_hp380p801m_vm0p949795mps_sp2deg_single_runner_mis0.csv 1.05.2026 18:17:45  4230014
+  line 83: D:\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\store\data_saved\phase2_B5D_tight_local_envelope_validation\case_reports\b5c047_hp52p723_vp6p654\phase2_B5A_by_vehicle_all.csv                                                                   1.05.2026 18:17:03     3039
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\FIND_real_manuscript_figure_sources.ps1
+  line 11: "fig01_phase2_success_rates_professional.pdf",
+  line 12: "fig02_failure_boundary_summary_professional.pdf",
+  line 13: "fig03_B5E_terminal_error_diagnostic_professional.pdf",
+  line 14: "fig04_B5F_range_closure_audit_professional.pdf",
+  line 16: "B5D tight local-envelope validation statistics",
+  line 17: "B5D case-level",
+  line 18: "B5D vehicle-level",
+  line 16: "B5D tight local-envelope validation statistics",
+  line 17: "B5D case-level",
+  line 18: "B5D vehicle-level",
+  line 19: "B5D",
+  line 21: "Failure-boundary diagnostic summary",
+  line 22: "B5E normalized terminal-residual diagnostic",
+  line 23: "B5F long-propagation range-closure audit",
+  line 25: "Observed range-to-go reduction",
+  line 26: "Normalized terminal residual",
+  line 27: "Strict TAEM tolerance boundary",
+  line 28: "No strict TAEM closure",
+  line 29: "No terminal output",
+  line 30: "Timeout or missing terminal output"
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\latex_replacement_Fig4_B5E_normalized.txt
+  line 8: \includegraphics[width=0.88\linewidth]{fig03_B5E_terminal_error_diagnostic_professional.pdf}
+  line 1: \subsection*{Replacement text for B5E normalized terminal-residual diagnostic}
+  line 3: The B5E normalized terminal-residual diagnostic is shown in Fig.~\ref{fig:b5e_terminal_error_diagnostic}. Each terminal-error component is divided by its corresponding strict TAEM tolerance, so the horizontal unity level represents the boundary of the strict closure box. Values above unity therefore indicate violation of at least one strict TAEM component. The unresolved B5E cases are retained only as boundary diagnostics and are not counted as positive robustness evidence.
+  line 9: \captionof{figure}{B5E normalized terminal-residual diagnostic for unresolved corner-case candidates. Each component is normalized by the corresponding strict TAEM tolerance, so values above unity indicate violation of the strict closure box. The figure is used only to diagnose the unresolved boundary behavior and is not counted as positive robustness evidence.}
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\make_3d_trajectory_video.py
+  line 20: --input store/data_saved/phase2_B5D_tight_local_envelope_validation_report/representative_success.csv \
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\make_fig01_b5d_success_rates.py
+  line 90: out_pdf = "fig01_phase2_success_rates_professional.pdf"
+  line 20: # B5D positive-evidence data ONLY
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\make_fig03_B5E_normalized_residual.py
+  line 18: - fig03_B5E_terminal_error_diagnostic_professional.pdf
+  line 193: ax.set_ylabel("Normalized terminal residual")
+  line 189: ax.axhline(1.0, linestyle="--", linewidth=1.2, label="Strict TAEM tolerance boundary")
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\make_fig03_B5E_normalized_residual_from_runs.py
+  line 40: - fig03_B5E_terminal_error_diagnostic_professional.pdf
+  line 384: ax.set_ylabel("Normalized terminal residual")
+  line 381: ax.axhline(1.0, linestyle="--", linewidth=1.2, label="Strict TAEM tolerance boundary")
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B6_bounded_universality_report.py
+  line 13: - B5D tight local-envelope positive evidence
+  line 353: b5d = summary[summary["campaign_id"].astype(str).str.contains("B5D", case=False, na=False)]
+  line 357: b5d_case = _fmt_pct(b5d.iloc[0]["case_or_run_pass_rate"]) if len(b5d) else "N/A"
+  line 358: b5d_vehicle = _fmt_pct(b5d.iloc[0]["vehicle_pass_rate"]) if len(b5d) else "N/A"
+  line 367: envelope. In the B5D tight local-envelope validation, the case-level success
+  line 368: rate is {b5d_case}, while the vehicle-level success rate is {b5d_vehicle}.
+  line 390: lines.append("1. B5E/B5F should not be treated as failed replications of B5D.")
+  line 404: lines.append("   expanding the certified envelope beyond B5D.")
+  line 413: b5d = summary[summary["campaign_id"].astype(str).str.contains("B5D", case=False, na=False)]
+  line 417: b5d_case = _fmt_pct(b5d.iloc[0]["case_or_run_pass_rate"]) if len(b5d) else "N/A"
+  line 418: b5d_vehicle = _fmt_pct(b5d.iloc[0]["vehicle_pass_rate"]) if len(b5d) else "N/A"
+  line 426: envelope, the B5D campaign achieved a case-level success rate of {b5d_case}
+  line 427: and a vehicle-level success rate of {b5d_vehicle}. This result indicates that
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B6_figure_polish_package.py
+  line 92: B5D = {
+  line 112: Path("store/data_saved/phase2_B5D_tight_local_envelope_validation_report"),
+  line 183: B5D["case_success"] / B5D["case_total"],
+  line 184: B5D["vehicle_success"] / B5D["vehicle_total"],
+  line 402: text = """Figure 1. Validated bounded local U3 envelope evidence. The B5D campaign provides the primary positive evidence with 49/50 case-level success and 149/150 vehicle-level success. B5E and B5F are shown only as strict-pass references and are not interpreted as positive universality evidence.
+  line 220: ax.bar(x - width / 2, non_pass, width, label="No strict TAEM closure")
+  line 221: ax.bar(x + width / 2, timeout, width, label="Timeout or no terminal output")
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B6_make_publication_figures.py
+  line 17: 5. Representative successful ground track, if a B5D success CSV is available
+  line 18: 6. Representative successful 3D trajectory, if a B5D success CSV is available
+  line 24: python .\phase2_B6_make_publication_figures.py --success-csv "path\to\B5D_combined.csv"
+  line 43: B5D_MANUAL = {
+  line 64: Path("store/data_saved/phase2_B5D_tight_local_envelope_validation/case_reports/b5c000_hp173p144_vm1p127/phase2_B5A_hp173p144m_vm1p12688mps_sp2deg_combined.csv"),
+  line 65: Path("store/data_saved/phase2_B5D_tight_local_envelope_validation_report/case_reports/b5c000_hp173p144_vm1p127/phase2_B5A_hp173p144m_vm1p12688mps_sp2deg_combined.csv"),
+  line 181: b5d_case_rate = safe_rate(B5D_MANUAL["case_success"], B5D_MANUAL["case_total"])
+  line 182: b5d_vehicle_rate = safe_rate(B5D_MANUAL["vehicle_success"], B5D_MANUAL["vehicle_total"])
+  line 198: rates = [b5d_case_rate, b5d_vehicle_rate, b5e_rate, b5f_rate]
+  line 221: "Validated bounded local U3 envelope evidence. B5D is used as the positive bounded-envelope "
+  line 460: "caption": "Representative successful ground track selected from the B5D tight-local-envelope evidence set.",
+  line 527: "caption": "Representative successful 3D trajectory selected from the B5D tight-local-envelope evidence set.",
+  line 585: "Representative trajectory figures skipped because no known B5D success trajectory CSV was found.\n"
+  line 586: "Use --success-csv to provide a B5D combined CSV manually.\n",
+  line 250: ax.bar(x - width / 2, np.nan_to_num(fail_rates, nan=0.0), width, label="No strict TAEM closure")
+  line 251: ax.bar(x + width / 2, np.nan_to_num(timeout_rates, nan=0.0), width, label="Timeout or missing terminal output")
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B6_trajectory_figures.py
+  line 21: Path("store/data_saved/phase2_B5D_tight_local_envelope_validation/case_reports/b5c000_hp173p144_vm1p127/phase2_B5A_hp173p144m_vm1p12688mps_sp2deg_combined.csv"),
+  line 22: Path("store/data_saved/phase2_B5D_tight_local_envelope_validation_report/case_reports/b5c000_hp173p144_vm1p127/phase2_B5A_hp173p144m_vm1p12688mps_sp2deg_combined.csv"),
+  line 30: B5D_SEARCH_ROOTS = [
+  line 31: Path("store/data_saved/phase2_B5D_tight_local_envelope_validation/case_reports"),
+  line 32: Path("store/data_saved/phase2_B5D_tight_local_envelope_validation_report/case_reports"),
+  line 127: mask = d["path"].astype(str).str.lower().str.contains("b5d|tight_local|local_envelope", regex=True)
+  line 149: for sr_rel in B5D_SEARCH_ROOTS:
+  line 162: if "b5d" in s: score += 100
+  line 323: ap.add_argument("--success-csv", default=None, help="Optional explicit B5D successful trajectory CSV.")
+  line 324: ap.add_argument("--allow-search", action="store_true", help="Allow bounded B5D-only search if known/inventory paths fail.")
+  line 332: raise SystemExit("[ERR] No B5D successful trajectory CSV found. Run with --success-csv or rerun B5D trajectory generation.")
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\README_B5E_Fig4_normalized_residual.txt
+  line 8: fig03_B5E_terminal_error_diagnostic_professional.pdf
+  line 53: figs\fig03_B5E_terminal_error_diagnostic_professional.pdf
+  line 62: \includegraphics[width=0.88\linewidth]{fig03_B5E_terminal_error_diagnostic_professional.pdf}
+  line 66: \captionof{figure}{B5E normalized terminal-residual diagnostic for unresolved corner-case candidates. Each component is normalized by the corresponding strict TAEM tolerance, so values above unity indicate violation of the strict closure box. The figure is used only to diagnose the unresolved boundary behavior and is not counted as positive robustness evidence.}
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\README_B6.txt
+  line 35: B5D is included as manual stats in the config:
+  line 44: Use B5D as the positive bounded local U3 universality evidence.
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\README_B6_FAST_Professional_Plot_Code_Revision_v2.txt
+  line 13: 2) Önce bilinen başarılı B5D combined CSV aranır.
+  line 14: 3) Bulamazsa mevcut trajectory inventory CSV üzerinden B5D/tight-local seçer.
+  line 34: Eğer B5D success CSV bulunamadı derse manual BAT içindeki SUCCESS_CSV satırını doğru combined CSV ile değiştirip şunu çalıştırın:
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\README_B6_Figure_Polish_v2.txt
+  line 5: Mevcut B5D/B5E/B5F çıktılarını kullanarak makale için daha temiz B6 figürleri üretir.
+  line 49: B5D pozitif bounded-local U3 kanıtıdır.
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\README_B6_Plot_Code_Professional_Label_Revision.txt
+  line 36: - Non-strict-pass rate             -> No strict TAEM closure
+  line 37: - Timeout rate                     -> Timeout or no terminal output
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\README_B6_PUBLICATION_FIGURES.txt
+  line 3: This package generates publication-ready figures from the existing B5D/B5E/B5F outputs.
+  line 65: store\data_saved\phase2_B5D_tight_local_envelope_validation_report
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\README_B6_Revised_Code_Package_v3.txt
+  line 20: - Uses the known B5D tight-local-envelope success CSV first, then inventory, and only searches narrowly when allowed.
+  line 50: If the automatic B5D success CSV is not found, edit the SUCCESS_CSV line in the manual BAT file and run:
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\README_B6_Trajectory_Figures.txt
+  line 73: Otomatik seçim, dosya adlarında B5D / tight_local / local_envelope / PASS_STRICT geçen CSV'leri pozitif başarı figürü için önceliklendirir.
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\README_B6_Trajectory_Figures_v2.txt
+  line 11: 1. Success CSV seçimi yalnızca B5D / tight-local-envelope benzeri klasörlerle sınırlandı.
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\run_B5E_bounded_and_make_fig03.ps1
+  line 32: Write-Host ".\figs\fig03_B5E_terminal_error_diagnostic_professional.pdf"
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\run_B5E_bounded_and_make_fig03_FIXED.ps1
+  line 51: Write-Host ".\figs\fig03_B5E_terminal_error_diagnostic_professional.pdf"
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\RUN_clean_visible_figure_labels.ps1
+  line 114: $Text = $Text.Replace("B5D tight local-envelope validation statistics", "Final sampled validation statistics")
+  line 294: "B5D tight local-envelope validation statistics",
+  line 120: $Text = $Text.Replace("B5D case-level`nstrict closure", "Case-level`nstrict closure")
+  line 122: $Text = $Text.Replace("B5D case-level\nstrict closure", "Case-level\nstrict closure")
+  line 124: $Text = $Text.Replace("B5D case-level strict closure", "Case-level strict closure")
+  line 128: $Text = $Text.Replace("B5D case-level\\nstrict closure", "Case-level\\nstrict closure")
+  line 295: "B5D case-level",
+  line 121: $Text = $Text.Replace("B5D vehicle-level`nstrict closure", "Vehicle-level`nstrict closure")
+  line 123: $Text = $Text.Replace("B5D vehicle-level\nstrict closure", "Vehicle-level\nstrict closure")
+  line 125: $Text = $Text.Replace("B5D vehicle-level strict closure", "Vehicle-level strict closure")
+  line 129: $Text = $Text.Replace("B5D vehicle-level\\nstrict closure", "Vehicle-level\\nstrict closure")
+  line 296: "B5D vehicle-level",
+  line 7: #   B5D/B5E/B5F labels from figure titles, bar labels, and x-axis labels,
+  line 41: "B5D",
+  line 114: $Text = $Text.Replace("B5D tight local-envelope validation statistics", "Final sampled validation statistics")
+  line 115: $Text = $Text.Replace("B5D tight local envelope validation statistics", "Final sampled validation statistics")
+  line 116: $Text = $Text.Replace("B5D tight sampled-local validation statistics", "Final sampled validation statistics")
+  line 117: $Text = $Text.Replace("B5D sampled local validation statistics", "Final sampled validation statistics")
+  line 118: $Text = $Text.Replace("B5D validation statistics", "Final sampled validation statistics")
+  line 120: $Text = $Text.Replace("B5D case-level`nstrict closure", "Case-level`nstrict closure")
+  line 121: $Text = $Text.Replace("B5D vehicle-level`nstrict closure", "Vehicle-level`nstrict closure")
+  line 122: $Text = $Text.Replace("B5D case-level\nstrict closure", "Case-level\nstrict closure")
+  line 123: $Text = $Text.Replace("B5D vehicle-level\nstrict closure", "Vehicle-level\nstrict closure")
+  line 124: $Text = $Text.Replace("B5D case-level strict closure", "Case-level strict closure")
+  line 125: $Text = $Text.Replace("B5D vehicle-level strict closure", "Vehicle-level strict closure")
+  line 128: $Text = $Text.Replace("B5D case-level\\nstrict closure", "Case-level\\nstrict closure")
+  line 129: $Text = $Text.Replace("B5D vehicle-level\\nstrict closure", "Vehicle-level\\nstrict closure")
+  line 167: # This removes B5D/B5E/B5F prefix from set_title/title/suptitle strings.
+  line 171: "(set_title|suptitle|title)\(\s*(['""])\s*B5D\s+([^'""]+)\2",
+  line 294: "B5D tight local-envelope validation statistics",
+  line 295: "B5D case-level",
+  line 296: "B5D vehicle-level",
+  line 46: "Failure-boundary diagnostic summary",
+  line 47: "failure-boundary diagnostic summary",
+  line 134: $Text = $Text.Replace("Failure-boundary diagnostic summary", "Boundary-diagnostic summary")
+  line 135: $Text = $Text.Replace("failure-boundary diagnostic summary", "Boundary-diagnostic summary")
+  line 136: $Text = $Text.Replace("B5E/B5F failure-boundary diagnostic summary", "Boundary-diagnostic summary")
+  line 137: $Text = $Text.Replace("B5E-B5F failure-boundary diagnostic summary", "Boundary-diagnostic summary")
+  line 299: "Failure-boundary diagnostic summary"
+  line 156: $Text = $Text.Replace("B5E normalized terminal-residual diagnostic", "Normalized terminal-residual diagnostic")
+  line 297: "B5E normalized terminal-residual diagnostic",
+  line 162: $Text = $Text.Replace("B5F long-propagation range-closure audit", "Long-propagation range-closure audit")
+  line 298: "B5F long-propagation range-closure audit",
+  line 157: $Text = $Text.Replace("B5E normalized terminal residual diagnostic", "Normalized terminal-residual diagnostic")
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\RUN_terminal_angular_diagnostics.ps1
+  line 384: Write-Host ".\outputs\B5D_final_50\*.csv"
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\preview_outputs_from_uploaded_csvs\phase2_B6_bounded_universality_claim.txt
+  line 6: envelope. In the B5D tight local-envelope validation, the case-level success
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\preview_outputs_from_uploaded_csvs\phase2_B6_campaign_summary.md
+  line 5: The evidence supports bounded local U3 universality inside the tight validated envelope. The work should not claim global universality. B5D is the positive envelope evidence; B5E and B5F are failure-boundary diagnostics for the mis0-left corner.
+  line 11: | B5D_tight_local_U3_envelope | positive_envelope_evidence | manual_stats | 50 | 98.00% | 99.33% | 0.00% | B5C_LOCAL_ENVELOPE_SUPPORTED | single close-escape / strict-boundary row in tight local envelope | Use as the main bounded-universality evidence. |
+  line 17: ### B5D_tight_local_U3_envelope — Tight local U3 envelope validation
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\preview_outputs_from_uploaded_csvs\phase2_B6_failure_boundary_notes.txt
+  line 3: 1. B5E/B5F should not be treated as failed replications of B5D.
+  line 17: expanding the certified envelope beyond B5D.
+
+============================================================
+FILE: D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\preview_outputs_from_uploaded_csvs\phase2_B6_manuscript_ready_block.md
+  line 5: envelope, the B5D campaign achieved a case-level success rate of 98.00%
+

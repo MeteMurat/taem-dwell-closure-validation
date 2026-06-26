@@ -1,0 +1,23 @@
+\begin{table}[pos=htbp]
+\centering
+\scriptsize
+\caption{Computational-burden audit for the guidance--logging--TAEM event-detection workflow. The timing values are hardware- and implementation-dependent and are reported as a reproducibility audit rather than as embedded-flight certification.}
+\label{tab:computational_burden_audit}
+\begin{tabular}{lll}
+\hline
+Audit item & Measured value & Interpretation \\
+\hline
+End-to-end three-role simulation wall time & N/A s & Median wall-clock time for the timed execution command. \\
+Simulated trajectory time span & N/A s & Maximum logged simulated-time span in the generated run. \\
+Real-time factor & N/A & Simulated-time span divided by wall-clock time. \\
+Logged samples per timed simulation & N/A & Number of saved trajectory rows in the timed output. \\
+Wall time per logged sample & N/A ms & End-to-end simulation wall time normalized by saved rows. \\
+CSV files replayed for event audit & 50 & Existing final-campaign logs used for event-detection timing. \\
+Logged rows replayed for event audit & 875109 & Total rows processed by the dwell/event replay audit. \\
+Dwell/event replay time excluding CSV I/O & 0.476021 s & Time for in-box reconstruction and dwell replay only. \\
+Dwell/event replay cost per row & 0.544 $\mu$s/row & Per-row post-processing overhead of the event detector. \\
+Dwell/event replay throughput & 1838384 rows/s & Logged-row processing throughput excluding CSV I/O. \\
+Total replay time including CSV I/O & 15.306 s & End-to-end log-reading plus event-replay time. \\
+\hline
+\end{tabular}
+\end{table}

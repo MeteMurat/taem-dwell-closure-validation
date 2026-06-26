@@ -1,0 +1,2 @@
+run_id,n_vehicles,detect_mode,detect_checks,dwell_min_s,reached_any_rate,reached_rate,avg_dwell_s,avg_dwell_max_s,median_t_first_reached,h_tol_m,v_tol_mps,sgo_tol_m,psi_tol_deg
+multiSimulation_case,3,logged_taem_in_box,,0.0,0.0,0.0,0.0,0.0,,1500.0,120.0,15000.0,8.0

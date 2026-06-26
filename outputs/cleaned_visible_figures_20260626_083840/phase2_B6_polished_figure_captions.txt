@@ -1,0 +1,15 @@
+Figure 1. Validated bounded local U3 envelope evidence. The B5D campaign provides the primary positive evidence with 49/50 case-level success and 149/150 vehicle-level success. B5E and B5F are shown only as strict-pass references and are not interpreted as positive universality evidence.
+
+Figure 2. Boundary-diagnostic summary. B5E and B5F delimit the current certified envelope. The B5F timeout rate indicates that the mis0-left corner remains outside the presently validated operating region.
+
+Figure 3a. B5E terminal height-error diagnostic. The best-ranked B5E candidates are shown using absolute terminal height error in kilometers.
+
+Figure 3b. B5E terminal velocity-error diagnostic. The best-ranked B5E candidates are shown using absolute terminal velocity error in km/s.
+
+Figure 3c. B5E terminal range-to-go error diagnostic. The best-ranked B5E candidates are shown using absolute terminal s_go error in kilometers.
+
+Figure 4. B5F long-propagation range-closure diagnostic. Cases with usable range data show the initial and final s_go values. Cases labelled TIMEOUT / NO CSV correspond to long-propagation runs that did not produce a usable terminal row.
+
+Figure 5. Representative failure-boundary ground track. This trajectory is shown as a representative diagnostic/failure-boundary path and should not be interpreted as a nominal-success trajectory.
+
+Figure 6. Interactive 3D trajectory, if separately generated. When used in the manuscript, it should be described as a representative diagnostic trajectory in longitude-latitude-height space, not as a fully successful TAEM-closure example.

@@ -1,0 +1,11 @@
+\subsection*{Replacement text for B5E normalized terminal-residual diagnostic}
+
+The B5E normalized terminal-residual diagnostic is shown in Fig.~\ref{fig:b5e_terminal_error_diagnostic}. Each terminal-error component is divided by its corresponding strict TAEM tolerance, so the horizontal unity level represents the boundary of the strict closure box. Values above unity therefore indicate violation of at least one strict TAEM component. The unresolved B5E cases are retained only as boundary diagnostics and are not counted as positive robustness evidence.
+
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\centering
+\includegraphics[width=0.88\linewidth]{fig03_B5E_terminal_error_diagnostic_professional.pdf}
+\captionof{figure}{B5E normalized terminal-residual diagnostic for unresolved corner-case candidates. Each component is normalized by the corresponding strict TAEM tolerance, so values above unity indicate violation of the strict closure box. The figure is used only to diagnose the unresolved boundary behavior and is not counted as positive robustness evidence.}
+\label{fig:b5e_terminal_error_diagnostic}
+\end{minipage}

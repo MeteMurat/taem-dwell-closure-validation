@@ -1,0 +1,124 @@
+import argparse
+import os
+import sys
+import subprocess
+from pathlib import Path
+from datetime import datetime
+
+DEFAULT_VARS = [
+    "height","velocity","s_go","bank_angle","L12D",
+    "taem_err_h_m","taem_err_v_mps","taem_err_sgo_m",
+    "taem_in_box","taem_dwell_time_s","taem_reached"
+]
+
+def run(cmd, env=None):
+    print("[CMD]", " ".join(cmd))
+    subprocess.check_call(cmd, env=env)
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--profile", choices=["base","smooth","accurate"], default="base")
+    ap.add_argument("--tag", default="")
+    ap.add_argument("--runs_root", default="store/data_saved/runs")
+    ap.add_argument("--downsample", type=int, default=10)
+    ap.add_argument("--trail_len", type=int, default=80)
+    ap.add_argument("--frame_stride", type=int, default=20)
+    ap.add_argument("--max_frames", type=int, default=1200)
+    ap.add_argument("--h_tol", type=float, default=500.0)
+    ap.add_argument("--v_tol", type=float, default=50.0)
+    ap.add_argument("--s_tol", type=float, default=5000.0)
+    ap.add_argument("--dwell", type=float, default=3.0)
+    args = ap.parse_args()
+
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_id = f"{ts}_{args.profile}" + (f"_{args.tag}" if args.tag.strip() else "")
+    run_dir = Path(args.runs_root) / run_id
+    report_dir = run_dir / "report"
+    plots_dir = run_dir / "plots"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    report_dir.mkdir(parents=True, exist_ok=True)
+    plots_dir.mkdir(parents=True, exist_ok=True)
+
+    # output paths
+    raw_csv  = run_dir / "multiSimulation_case.csv"
+    taem_csv = run_dir / "multiSimulation_case_taem.csv"
+    snap_csv = run_dir / "event_snapshots.csv"
+    tcr_csv  = run_dir / "taem_closest_report.csv"
+    score_csv = run_dir / "run_score.csv"
+    ca_csv = report_dir / "closest_approach_report.csv"
+    html_3d = run_dir / "multi_3d_trail.html"
+
+    env = os.environ.copy()
+    env["EG_PROFILE"] = args.profile
+    env["EG_STORE_DATA"] = str(raw_csv)
+
+    env["EG_RUN_ID"] = run_id
+    # 1) simulate (writes raw_csv via EG_STORE_DATA)
+    run([sys.executable, "multi_main.py"], env=env)
+    if not raw_csv.exists():
+        raise FileNotFoundError(f"Simulation did not produce: {raw_csv}")
+
+    # 2) add TAEM columns
+    run([sys.executable, "add_taem_event_columns.py",
+         "--input", str(raw_csv),
+         "--out", str(taem_csv),
+         "--h_tol", str(args.h_tol),
+         "--v_tol", str(args.v_tol),
+         "--s_tol", str(args.s_tol),
+         "--dwell", str(args.dwell)], env=env)
+
+    # 3) event snapshots + taem closest
+    run([sys.executable, "event_snapshots.py",
+         "--input", str(taem_csv),
+         "--out", str(snap_csv)], env=env)
+
+    run([sys.executable, "taem_closest_report.py",
+         "--input", str(taem_csv),
+         "--out", str(tcr_csv),
+         "--h_tol", str(args.h_tol),
+         "--v_tol", str(args.v_tol),
+         "--s_tol", str(args.s_tol)], env=env)
+
+    # 4) closest approach report
+    run([sys.executable, "plot_csv_report-23-01.py",
+         "--csv", str(taem_csv),
+         "--outdir", str(report_dir)], env=env)
+    if not ca_csv.exists():
+        print("[WARN] closest_approach_report.csv not found at expected path:", ca_csv)
+
+    # 5) timeseries PDF with TAEM variables
+    run([sys.executable, "plot_csv_report.py",
+         "--input", str(taem_csv),
+         "--outdir", str(plots_dir),
+         "--downsample", str(args.downsample),
+         "--idcol", "mis_id",
+         "--xcol", "global_t",
+         "--vars", *DEFAULT_VARS], env=env)
+
+    # 6) 3D animation
+    run([sys.executable, "visualize_3d_anim_safe_fixed.py",
+         "--input", str(taem_csv),
+         "--out", str(html_3d),
+         "--idcol", "mis_id",
+         "--trail", "--trail_len", str(args.trail_len),
+         "--downsample", str(args.downsample),
+         "--frame_stride", str(args.frame_stride),
+         "--max_frames", str(args.max_frames)], env=env)
+
+    # 7) run_score
+    # (closest report path might vary, but your make_run_score.py v2 tolerates missing optional fields)
+    run([sys.executable, "make_run_score.py",
+         "--closest", str(ca_csv),
+         "--taem_closest", str(tcr_csv),
+         "--event_snapshots", str(snap_csv),
+         "--out", str(score_csv)], env=env)
+
+    # 8) collect all run scores (master)
+    # (needs collect_run_scores.py in repo)
+    if Path("collect_run_scores.py").exists():
+        run([sys.executable, "collect_run_scores.py"], env=env)
+
+    print("\n[OK] Run saved to:", run_dir)
+
+if __name__ == "__main__":
+    main()

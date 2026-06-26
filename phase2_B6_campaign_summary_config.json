@@ -1,0 +1,62 @@
+{
+  "experiment": "phase2_B6_bounded_universality_evidence_pack",
+  "output_dir": "store/data_saved/phase2_B6_bounded_universality_evidence_pack",
+  "executive_conclusion": "The evidence supports bounded local U3 universality inside the tight validated envelope. The work should not claim global universality. B5D is the positive envelope evidence; B5E and B5F are failure-boundary diagnostics for the mis0-left corner.",
+  "campaigns": [
+    {
+      "campaign_id": "B5D_tight_local_U3_envelope",
+      "campaign_label": "Tight local U3 envelope validation",
+      "type": "manual",
+      "evidence_role": "positive_envelope_evidence",
+      "manual_stats": {
+        "n_cases": 50,
+        "n_vehicles": 150,
+        "case_pass": 49,
+        "vehicle_pass": 149,
+        "timeout_count": 0,
+        "timeout_rate": 0.0,
+        "dominant_decision": "B5C_LOCAL_ENVELOPE_SUPPORTED",
+        "decision_counts": "PASS:49; FAIL/close_escape:1",
+        "dominant_failure_mode": "single close-escape / strict-boundary row in tight local envelope",
+        "best_case_id": "B5D_tight_local_envelope",
+        "best_candidate_id": "V8.2/B5D baseline",
+        "best_score": 0.0,
+        "min_s_go_final_m": null,
+        "max_s_go_drop_pct": null,
+        "pathspec_active_any": "N/A",
+        "guide_phase_last_mode": "taem_dwell_reached"
+      },
+      "interpretation": "Primary positive evidence. This campaign supports the bounded local U3 envelope: 49/50 case-level success and 149/150 vehicle-level success.",
+      "recommended_use": "Use as the main bounded-universality evidence."
+    },
+    {
+      "campaign_id": "B5E_mis0_corner_bounded_diagnostic",
+      "campaign_label": "mis0 corner bounded diagnostic / path-shaping refinement attempt",
+      "type": "csv_by_run",
+      "evidence_role": "boundary_diagnostic",
+      "path_candidates": [
+        "store/data_saved/phase2_B5E_mis0_corner_robustness_refinement_bounded_diagnostic/phase2_B5E_by_run.csv",
+        "store/data_saved/phase2_B5E_mis0_corner_robustness_refinement_rescue_soft_first/phase2_B5E_by_run.csv",
+        "phase2_B5E_by_run.csv"
+      ],
+      "n_vehicles": 30,
+      "dominant_failure_mode": "FAIL_TAEM_ERROR: path-shaping and fade candidates did not produce strict TAEM success or meaningful candidate separation.",
+      "interpretation": "Boundary evidence. B5E shows that simple psi_bias/fade refinement is insufficient for certifying the mis0-left corner.",
+      "recommended_use": "Use as failure-boundary evidence; do not use as positive universality evidence."
+    },
+    {
+      "campaign_id": "B5F_mis0_long_propagation_pathspec_audit",
+      "campaign_label": "mis0 long-propagation reachability and PathSpec activation audit",
+      "type": "csv_by_run",
+      "evidence_role": "boundary_diagnostic",
+      "path_candidates": [
+        "store/data_saved/phase2_B5F_mis0_long_propagation_pathspec_audit/phase2_B5F_by_run.csv",
+        "phase2_B5F_by_run.csv"
+      ],
+      "n_vehicles": 4,
+      "dominant_failure_mode": "No strict TAEM pass. One case closes range without latch; other cases may timeout. PathSpec remains inactive or ineffective, and the run stays in steady_glide_phase.",
+      "interpretation": "Reachability-boundary evidence. The best long-propagation case closes range but remains outside TAEM, indicating a terminal-capture / phase-transition boundary.",
+      "recommended_use": "Use to delimit the current certified envelope and motivate future terminal-capture refinement."
+    }
+  ]
+}

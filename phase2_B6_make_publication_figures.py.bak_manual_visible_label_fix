@@ -1,0 +1,621 @@
+﻿# -*- coding: utf-8 -*-
+r"""phase2_B6_make_publication_figures.py
+
+B6 publication figures - professional FAST revision.
+
+Post-processing only:
+- Does not run simulations.
+- Does not modify guidance or multiset files.
+- Avoids broad recursive trajectory scans by default.
+
+Generated figures
+-----------------
+1. Success-rate evidence summary
+2. Boundary-diagnostic summary
+3. B5E corner-case terminal-error diagnostic
+4. Long-propagation range-closure audit
+5. Representative successful ground track, if a B5D success CSV is available
+6. Representative successful 3D trajectory, if a B5D success CSV is available
+
+Typical use from the EntryGuidance-master root:
+    python .\phase2_B6_make_publication_figures.py
+
+Optional:
+    python .\phase2_B6_make_publication_figures.py --success-csv "path\to\B5D_combined.csv"
+    python .\phase2_B6_make_publication_figures.py --skip-trajectory
+"""
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Optional, Tuple
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+# -----------------------------------------------------------------------------
+# Configuration
+# -----------------------------------------------------------------------------
+
+B5D_MANUAL = {
+    "case_success": 49,
+    "case_total": 50,
+    "vehicle_success": 149,
+    "vehicle_total": 150,
+}
+
+DEFAULT_OUTDIR = Path("store/data_saved/phase2_B6_publication_figures_professional_fast_v3")
+
+B5E_CANDIDATES = [
+    Path("store/data_saved/phase2_B5E_mis0_corner_robustness_refinement_bounded_diagnostic/phase2_B5E_by_run.csv"),
+    Path("store/data_saved/phase2_B5E_mis0_corner_robustness_refinement_rescue_soft_first/phase2_B5E_by_run.csv"),
+    Path("phase2_B5E_by_run.csv"),
+]
+
+B5F_CANDIDATES = [
+    Path("store/data_saved/phase2_B5F_mis0_long_propagation_pathspec_audit/phase2_B5F_by_run.csv"),
+    Path("phase2_B5F_by_run.csv"),
+]
+
+KNOWN_SUCCESS_CSVS = [
+    Path("store/data_saved/phase2_B5D_tight_local_envelope_validation/case_reports/b5c000_hp173p144_vm1p127/phase2_B5A_hp173p144m_vm1p12688mps_sp2deg_combined.csv"),
+    Path("store/data_saved/phase2_B5D_tight_local_envelope_validation_report/case_reports/b5c000_hp173p144_vm1p127/phase2_B5A_hp173p144m_vm1p12688mps_sp2deg_combined.csv"),
+]
+
+LON_CANDS = ["longitude", "lon", "lng"]
+LAT_CANDS = ["latitude", "lat"]
+H_CANDS = ["height", "altitude", "h"]
+T_CANDS = ["t_local", "global_t", "t"]
+ID_CANDS = ["mis_id", "vehicle_id", "id"]
+
+
+# -----------------------------------------------------------------------------
+# General helpers
+# -----------------------------------------------------------------------------
+
+def ensure_dir(path: Path) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+
+
+def first_existing(paths: Iterable[Path], root: Path) -> Optional[Path]:
+    for raw in paths:
+        p = raw if raw.is_absolute() else root / raw
+        if p.exists():
+            return p
+    return None
+
+
+def read_csv(path: Optional[Path]) -> Optional[pd.DataFrame]:
+    if path is None or not path.exists():
+        return None
+    try:
+        return pd.read_csv(path, low_memory=False)
+    except Exception:
+        return None
+
+
+def numeric(series: pd.Series) -> pd.Series:
+    return pd.to_numeric(series, errors="coerce")
+
+
+def as_bool(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    try:
+        if isinstance(value, (int, float, np.integer, np.floating)):
+            if not np.isfinite(float(value)):
+                return False
+            return float(value) > 0.5
+    except Exception:
+        pass
+    text = str(value).strip().lower()
+    return text in {"1", "true", "t", "yes", "y", "pass", "passed", "pass_strict"}
+
+
+def bool_series(df: pd.DataFrame, col: str) -> pd.Series:
+    if col not in df.columns:
+        return pd.Series([False] * len(df), index=df.index)
+    return df[col].map(as_bool)
+
+
+def safe_rate(num: float, den: float) -> float:
+    return float(num) / float(den) if den else np.nan
+
+
+def first_col(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
+    for c in candidates:
+        if c in df.columns:
+            return c
+    return None
+
+
+def maybe_rad_to_deg(series: pd.Series) -> pd.Series:
+    values = numeric(series).astype(float)
+    if len(values) == 0:
+        return values
+    mx = np.nanmax(np.abs(values.to_numpy()))
+    if np.isfinite(mx) and mx < 6.5:
+        return pd.Series(np.degrees(values), index=series.index)
+    return values
+
+
+def vehicle_label(gid: Any) -> str:
+    try:
+        return f"Vehicle {int(float(gid)) + 1}"
+    except Exception:
+        return "Vehicle"
+
+
+def write_text(path: Path, text: str) -> None:
+    path.write_text(text, encoding="utf-8")
+
+
+def save_figure(fig: plt.Figure, outdir: Path, stem: str) -> Dict[str, str]:
+    ensure_dir(outdir)
+    png = outdir / f"{stem}.png"
+    pdf = outdir / f"{stem}.pdf"
+    fig.savefig(png, dpi=300, bbox_inches="tight")
+    fig.savefig(pdf, bbox_inches="tight")
+    plt.close(fig)
+    return {"png": str(png), "pdf": str(pdf)}
+
+
+def annotate_rate(ax: plt.Axes, x: float, value: float, *, zero_y: float = 0.035) -> None:
+    if not np.isfinite(value):
+        ax.text(x, zero_y, "N/A", ha="center", va="bottom", fontsize=10, clip_on=False)
+        return
+    y = value + 0.030 if value > 0 else zero_y
+    ax.text(x, y, f"{100.0 * value:.1f}%", ha="center", va="bottom", fontsize=10, clip_on=False)
+
+
+# -----------------------------------------------------------------------------
+# Figure 1
+# -----------------------------------------------------------------------------
+
+def make_success_rates(outdir: Path, b5e: Optional[pd.DataFrame], b5f: Optional[pd.DataFrame]) -> Dict[str, Any]:
+    b5d_case_rate = safe_rate(B5D_MANUAL["case_success"], B5D_MANUAL["case_total"])
+    b5d_vehicle_rate = safe_rate(B5D_MANUAL["vehicle_success"], B5D_MANUAL["vehicle_total"])
+
+    b5e_rate = np.nan
+    if b5e is not None and len(b5e) > 0 and "strict_pass" in b5e.columns:
+        b5e_rate = float(bool_series(b5e, "strict_pass").mean())
+
+    b5f_rate = np.nan
+    if b5f is not None and len(b5f) > 0 and "strict_pass" in b5f.columns:
+        b5f_rate = float(bool_series(b5f, "strict_pass").mean())
+
+    labels = [
+        "B5D case-level\nclosure",
+        "B5D vehicle-level\nclosure",
+        "B5E strict\nclosure",
+        "B5F strict\nclosure",
+    ]
+    rates = [b5d_case_rate, b5d_vehicle_rate, b5e_rate, b5f_rate]
+
+    fig, ax = plt.subplots(figsize=(9.2, 5.5))
+    x = np.arange(len(labels))
+    ax.bar(x, np.nan_to_num(rates, nan=0.0), width=0.72)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.set_ylim(0.0, 1.12)
+    ax.set_ylabel("Success rate")
+    ax.set_title("Validated bounded local U3 envelope evidence", pad=12)
+    ax.grid(True, axis="y", alpha=0.30)
+    ax.margins(y=0.08)
+
+    for i, r in enumerate(rates):
+        annotate_rate(ax, i, r)
+
+    fig.tight_layout(pad=1.6)
+    paths = save_figure(fig, outdir, "fig01_phase2_success_rates_professional")
+    return {
+        "figure": "Figure 1",
+        "title": "Validated bounded local U3 envelope evidence",
+        **paths,
+        "caption": (
+            "Validated bounded local U3 envelope evidence. B5D is used as the positive bounded-envelope "
+            "evidence, whereas B5E and B5F are retained as boundary diagnostics."
+        ),
+    }
+
+
+# -----------------------------------------------------------------------------
+# Figure 2
+# -----------------------------------------------------------------------------
+
+def _failure_and_timeout_rates(df: Optional[pd.DataFrame]) -> Tuple[float, float]:
+    if df is None or len(df) == 0:
+        return np.nan, np.nan
+    strict = bool_series(df, "strict_pass") if "strict_pass" in df.columns else pd.Series([False] * len(df), index=df.index)
+    timed = bool_series(df, "timed_out") if "timed_out" in df.columns else pd.Series([False] * len(df), index=df.index)
+    return float((~strict).mean()), float(timed.mean())
+
+
+def make_failure_summary(outdir: Path, b5e: Optional[pd.DataFrame], b5f: Optional[pd.DataFrame]) -> Dict[str, Any]:
+    labels = ["Residual-boundary audit", "Long-propagation audit"]
+    b5e_fail, b5e_timeout = _failure_and_timeout_rates(b5e)
+    b5f_fail, b5f_timeout = _failure_and_timeout_rates(b5f)
+    fail_rates = [b5e_fail, b5f_fail]
+    timeout_rates = [b5e_timeout, b5f_timeout]
+
+    x = np.arange(len(labels))
+    width = 0.34
+
+    fig, ax = plt.subplots(figsize=(8.6, 5.4))
+    ax.bar(x - width / 2, np.nan_to_num(fail_rates, nan=0.0), width, label="No strict TAEM closure")
+    ax.bar(x + width / 2, np.nan_to_num(timeout_rates, nan=0.0), width, label="Timeout or missing terminal output")
+    ax.set_ylim(0.0, 1.12)
+    ax.set_ylabel("Rate")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.set_title("Boundary-diagnostic summary", pad=12)
+    ax.grid(True, axis="y", alpha=0.30)
+
+    for xx, r in zip(x - width / 2, fail_rates):
+        annotate_rate(ax, xx, r)
+    for xx, r in zip(x + width / 2, timeout_rates):
+        annotate_rate(ax, xx, r)
+
+    # Keep legend outside the data field so it never covers the bars.
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.13), ncol=2, frameon=True)
+    fig.tight_layout(rect=[0.0, 0.08, 1.0, 1.0], pad=1.5)
+
+    paths = save_figure(fig, outdir, "fig02_failure_boundary_summary_professional")
+    return {
+        "figure": "Figure 2",
+        "title": "Boundary-diagnostic summary",
+        **paths,
+        "caption": (
+            "Boundary-diagnostic summary for B5E and B5F. The figure separates the absence of "
+            "strict TAEM closure from timeout or missing-terminal-output cases."
+        ),
+    }
+
+
+# -----------------------------------------------------------------------------
+# Figure 3
+# -----------------------------------------------------------------------------
+
+def make_b5e_terminal_error(outdir: Path, b5e: Optional[pd.DataFrame]) -> Optional[Dict[str, Any]]:
+    if b5e is None or len(b5e) == 0:
+        return None
+    required = ["taem_h_err_final", "taem_v_err_final", "taem_s_go_err_final"]
+    if not all(c in b5e.columns for c in required):
+        return None
+
+    d = b5e.copy()
+    if "score" in d.columns:
+        d["_score"] = numeric(d["score"]).fillna(1.0e99)
+        d = d.sort_values("_score")
+    d = d.head(min(12, len(d))).copy()
+
+    labels = [f"Candidate {i}" for i in range(1, len(d) + 1)]
+    x = np.arange(len(d))
+    h_err_km = numeric(d["taem_h_err_final"]).abs().to_numpy() / 1000.0
+    v_err_kms = numeric(d["taem_v_err_final"]).abs().to_numpy() / 1000.0
+    rgo_err_km = numeric(d["taem_s_go_err_final"]).abs().to_numpy() / 1000.0
+
+    fig, ax = plt.subplots(figsize=(10.0, 5.7))
+    ax.plot(x, h_err_km, marker="o", linewidth=1.6, label="Altitude error (km)")
+    ax.plot(x, v_err_kms, marker="s", linewidth=1.6, label="Velocity error (km/s)")
+    ax.plot(x, rgo_err_km, marker="^", linewidth=1.6, label="Range-to-go error (km)")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=45, ha="right")
+    ax.set_ylabel("Terminal error magnitude")
+    ax.set_title("corner-case terminal error diagnostic", pad=12)
+    ax.grid(True, alpha=0.30)
+
+    ymax = np.nanmax(np.concatenate([h_err_km, v_err_kms, rgo_err_km])) if len(d) else 1.0
+    if np.isfinite(ymax) and ymax > 0:
+        ax.set_ylim(0.0, ymax * 1.12)
+
+    # Below-axis legend avoids hiding the high range-to-go-error trace.
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.22), ncol=3, frameon=True)
+    fig.tight_layout(rect=[0.0, 0.12, 1.0, 1.0], pad=1.5)
+
+    paths = save_figure(fig, outdir, "fig03_B5E_terminal_error_diagnostic_professional")
+    return {
+        "figure": "Figure 3",
+        "title": "B5E corner-case terminal error diagnostic",
+        **paths,
+        "caption": (
+            "B5E corner-case terminal-error diagnostic. The range-to-go term is reported explicitly "
+            "without code-style variable notation in the figure legend."
+        ),
+    }
+
+
+# -----------------------------------------------------------------------------
+# Figure 4
+# -----------------------------------------------------------------------------
+
+def make_b5f_range_closure(outdir: Path, b5f: Optional[pd.DataFrame]) -> Optional[Dict[str, Any]]:
+    if b5f is None or len(b5f) == 0:
+        return None
+    if "s_go_start" not in b5f.columns or "s_go_final" not in b5f.columns:
+        return None
+
+    d = b5f.copy().head(min(4, len(b5f))).copy()
+    labels = [f"Audit {i}" for i in range(1, len(d) + 1)]
+    start = numeric(d["s_go_start"]).to_numpy() / 1000.0
+    final = numeric(d["s_go_final"]).to_numpy() / 1000.0
+    if "s_go_drop_pct" in d.columns:
+        drop = numeric(d["s_go_drop_pct"]).to_numpy()
+    else:
+        with np.errstate(divide="ignore", invalid="ignore"):
+            drop = (start - final) / start * 100.0
+
+    x = np.arange(len(d))
+    width = 0.34
+
+    fig, ax = plt.subplots(figsize=(9.6, 5.5))
+    ax.bar(x - width / 2, np.nan_to_num(start, nan=0.0), width, label="Initial range-to-go")
+    ax.bar(x + width / 2, np.nan_to_num(final, nan=0.0), width, label="Final range-to-go")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=28, ha="right")
+    ax.set_ylabel("Range-to-go (km)")
+    ax.set_title("Long-propagation range-closure audit", pad=12)
+    ax.grid(True, axis="y", alpha=0.30)
+
+    finite_values = np.concatenate([start[np.isfinite(start)], final[np.isfinite(final)]])
+    ymax = float(np.max(finite_values)) if len(finite_values) else 1.0
+    ax.set_ylim(0.0, ymax * 1.20 if ymax > 0 else 1.0)
+
+    for i, dp in enumerate(drop):
+        if not np.isfinite(dp):
+            ax.text(i, ymax * 0.05, "No terminal CSV", ha="center", va="bottom", fontsize=8, rotation=90)
+            continue
+        top = np.nanmax([start[i], final[i]]) if np.isfinite(np.nanmax([start[i], final[i]])) else 0.0
+        ax.text(i, top * 1.04, f"{dp:.1f}% range reduction", ha="center", va="bottom", fontsize=8)
+
+    # In the upper-right corner the legend avoids the Audit-1 bars on the left.
+    ax.legend(loc="upper right", frameon=True)
+    fig.tight_layout(pad=1.5)
+
+    paths = save_figure(fig, outdir, "fig04_B5F_range_closure_audit_professional")
+    return {
+        "figure": "Figure 4",
+        "title": "Long-propagation range-closure audit",
+        **paths,
+        "caption": (
+            "Long-propagation range-closure audit. The legend is positioned away from the main "
+            "bars and the range-to-go terminology is presented in publication style."
+        ),
+    }
+
+
+# -----------------------------------------------------------------------------
+# Optional representative trajectory figures
+# -----------------------------------------------------------------------------
+
+def pick_success_csv(root: Path, manual: Optional[str]) -> Optional[Path]:
+    if manual:
+        p = Path(manual)
+        if not p.is_absolute():
+            p = root / p
+        return p if p.exists() else None
+    return first_existing(KNOWN_SUCCESS_CSVS, root)
+
+
+def load_trajectory(path: Path) -> Tuple[pd.DataFrame, Dict[str, str]]:
+    df = pd.read_csv(path, low_memory=False).copy()
+    idc = first_col(df, ID_CANDS)
+    if idc is None:
+        idc = "mis_id"
+        df[idc] = 0
+    tc = first_col(df, T_CANDS)
+    if tc is None:
+        df["_time"] = np.arange(len(df), dtype=float)
+    else:
+        df["_time"] = numeric(df[tc]).astype(float)
+        if df["_time"].isna().all():
+            df["_time"] = np.arange(len(df), dtype=float)
+    lon = first_col(df, LON_CANDS)
+    lat = first_col(df, LAT_CANDS)
+    h = first_col(df, H_CANDS)
+    if lon is None or lat is None or h is None:
+        raise ValueError(f"Trajectory CSV is missing longitude/latitude/height columns: {path}")
+    df["_lon_deg"] = maybe_rad_to_deg(df[lon])
+    df["_lat_deg"] = maybe_rad_to_deg(df[lat])
+    df["_alt_km"] = numeric(df[h]).astype(float) / 1000.0
+    return df, {"idc": idc, "time": tc or "_time", "lon": lon, "lat": lat, "h": h}
+
+
+def make_representative_ground_track(outdir: Path, csv_path: Path) -> Optional[Dict[str, Any]]:
+    try:
+        df, meta = load_trajectory(csv_path)
+    except Exception as exc:
+        write_text(outdir / "fig05_ground_track_skipped_note.txt", f"Figure 5 skipped: {exc}\n")
+        return None
+
+    idc = meta["idc"]
+    fig, ax = plt.subplots(figsize=(8.7, 6.2))
+    for gid, g in df.groupby(idc):
+        g = g.sort_values("_time")
+        x = numeric(g["_lon_deg"])
+        y = numeric(g["_lat_deg"])
+        mask = x.notna() & y.notna()
+        if not mask.any():
+            continue
+        ax.plot(x[mask], y[mask], linewidth=2.0, label=vehicle_label(gid))
+        ax.plot(float(x[mask].iloc[0]), float(y[mask].iloc[0]), marker="o", markersize=6)
+        ax.plot(float(x[mask].iloc[-1]), float(y[mask].iloc[-1]), marker="x", markersize=7)
+    ax.set_xlabel("Longitude (deg)")
+    ax.set_ylabel("Latitude (deg)")
+    ax.set_title("Representative successful ground track", pad=12)
+    ax.grid(True, alpha=0.25)
+    ax.legend(loc="upper right", frameon=True)
+    fig.tight_layout(pad=1.5)
+    paths = save_figure(fig, outdir, "fig05_representative_ground_track_professional")
+    return {
+        "figure": "Figure 5",
+        "title": "Representative successful ground track",
+        "source_csv": str(csv_path),
+        **paths,
+        "caption": "Representative successful ground track selected from the B5D tight-local-envelope evidence set.",
+    }
+
+
+def make_representative_3d(outdir: Path, csv_path: Path) -> Optional[Dict[str, Any]]:
+    try:
+        df, meta = load_trajectory(csv_path)
+    except Exception as exc:
+        write_text(outdir / "fig06_3d_skipped_note.txt", f"Figure 6 skipped: {exc}\n")
+        return None
+
+    try:
+        from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+        fig = plt.figure(figsize=(8.8, 7.0))
+        ax = fig.add_subplot(1, 1, 1, projection="3d")
+        idc = meta["idc"]
+        for gid, g in df.groupby(idc):
+            g = g.sort_values("_time")
+            x = numeric(g["_lon_deg"])
+            y = numeric(g["_lat_deg"])
+            z = numeric(g["_alt_km"])
+            mask = x.notna() & y.notna() & z.notna()
+            if not mask.any():
+                continue
+            ax.plot(x[mask], y[mask], z[mask], linewidth=2.0, label=vehicle_label(gid))
+            ax.scatter([float(x[mask].iloc[0])], [float(y[mask].iloc[0])], [float(z[mask].iloc[0])], marker="o", s=28)
+            ax.scatter([float(x[mask].iloc[-1])], [float(y[mask].iloc[-1])], [float(z[mask].iloc[-1])], marker="x", s=40)
+        ax.set_xlabel("Longitude (deg)")
+        ax.set_ylabel("Latitude (deg)")
+        ax.set_zlabel("Altitude (km)")
+        ax.set_title("Representative successful 3D trajectory", pad=12)
+        ax.legend(loc="upper right", frameon=True)
+        fig.tight_layout(pad=1.5)
+        paths = save_figure(fig, outdir, "fig06_representative_3D_trajectory_professional")
+    except Exception as exc:
+        write_text(outdir / "fig06_3d_static_skipped_note.txt", f"Static 3D figure skipped: {exc}\n")
+        paths = {}
+
+    html_path: Optional[Path] = None
+    try:
+        import plotly.graph_objects as go
+        fig3d = go.Figure()
+        idc = meta["idc"]
+        for gid, g in df.groupby(idc):
+            g = g.sort_values("_time")
+            fig3d.add_trace(go.Scatter3d(
+                x=g["_lon_deg"], y=g["_lat_deg"], z=g["_alt_km"],
+                mode="lines", name=vehicle_label(gid),
+            ))
+        fig3d.update_layout(
+            title="Representative successful 3D trajectory",
+            scene=dict(
+                xaxis_title="Longitude (deg)",
+                yaxis_title="Latitude (deg)",
+                zaxis_title="Altitude (km)",
+            ),
+            legend=dict(itemsizing="constant"),
+        )
+        html_path = outdir / "fig06_representative_3D_trajectory_professional.html"
+        fig3d.write_html(str(html_path), include_plotlyjs="cdn")
+    except Exception as exc:
+        write_text(outdir / "fig06_3d_html_skipped_note.txt", f"Interactive HTML skipped: {exc}\n")
+
+    result = {
+        "figure": "Figure 6",
+        "title": "Representative successful 3D trajectory",
+        "source_csv": str(csv_path),
+        "caption": "Representative successful 3D trajectory selected from the B5D tight-local-envelope evidence set.",
+    }
+    result.update(paths)
+    if html_path is not None:
+        result["html"] = str(html_path)
+    return result
+
+
+# -----------------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------------
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--outdir", default=str(DEFAULT_OUTDIR))
+    ap.add_argument("--b5e-csv", default=None)
+    ap.add_argument("--b5f-csv", default=None)
+    ap.add_argument("--success-csv", default=None)
+    ap.add_argument("--skip-trajectory", action="store_true")
+    args = ap.parse_args()
+
+    root = Path.cwd()
+    outdir = root / Path(args.outdir)
+    ensure_dir(outdir)
+
+    b5e_path = Path(args.b5e_csv) if args.b5e_csv else first_existing(B5E_CANDIDATES, root)
+    if b5e_path and not b5e_path.is_absolute():
+        b5e_path = root / b5e_path
+    b5f_path = Path(args.b5f_csv) if args.b5f_csv else first_existing(B5F_CANDIDATES, root)
+    if b5f_path and not b5f_path.is_absolute():
+        b5f_path = root / b5f_path
+
+    b5e = read_csv(b5e_path)
+    b5f = read_csv(b5f_path)
+
+    figures: List[Dict[str, Any]] = []
+    figures.append(make_success_rates(outdir, b5e, b5f))
+    figures.append(make_failure_summary(outdir, b5e, b5f))
+    fig3 = make_b5e_terminal_error(outdir, b5e)
+    if fig3:
+        figures.append(fig3)
+    fig4 = make_b5f_range_closure(outdir, b5f)
+    if fig4:
+        figures.append(fig4)
+
+    success_path = None
+    if not args.skip_trajectory:
+        success_path = pick_success_csv(root, args.success_csv)
+        if success_path and success_path.exists():
+            fig5 = make_representative_ground_track(outdir, success_path)
+            if fig5:
+                figures.append(fig5)
+            fig6 = make_representative_3d(outdir, success_path)
+            if fig6:
+                figures.append(fig6)
+        else:
+            write_text(
+                outdir / "representative_trajectory_skipped_note.txt",
+                "Representative trajectory figures skipped because no known B5D success trajectory CSV was found.\n"
+                "Use --success-csv to provide a B5D combined CSV manually.\n",
+            )
+
+    captions_path = outdir / "phase2_B6_figure_captions_professional.txt"
+    captions = []
+    for item in figures:
+        captions.append(f"{item['figure']}. {item['caption']}")
+    write_text(captions_path, "\n\n".join(captions) + "\n")
+
+    manifest = {
+        "b5e_csv": str(b5e_path) if b5e_path else None,
+        "b5f_csv": str(b5f_path) if b5f_path else None,
+        "success_csv": str(success_path) if success_path else None,
+        "outdir": str(outdir),
+        "figures": figures,
+        "captions": str(captions_path),
+    }
+    manifest_path = outdir / "phase2_B6_publication_figures_manifest.json"
+    write_text(manifest_path, json.dumps(manifest, ensure_ascii=False, indent=2))
+
+    print("[B6-PUB-FAST-v3] Done.")
+    print("[B6-PUB-FAST-v3] Output dir:", outdir)
+    print("[B6-PUB-FAST-v3] B5E CSV:", b5e_path)
+    print("[B6-PUB-FAST-v3] B5F CSV:", b5f_path)
+    print("[B6-PUB-FAST-v3] Success CSV:", success_path)
+    for item in figures:
+        for k in ("png", "pdf", "html"):
+            if k in item:
+                print(" -", item[k])
+    print(" -", captions_path)
+    print(" -", manifest_path)
+
+
+if __name__ == "__main__":
+    main()
+

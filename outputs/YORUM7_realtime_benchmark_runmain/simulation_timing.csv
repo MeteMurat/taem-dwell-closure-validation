@@ -1,0 +1,4 @@
+rep,command,return_code,wall_s,changed_csv,row_count,n_vehicles,sim_span_max_s,real_time_factor,ms_per_logged_row,stdout_log,stderr_log
+1,python multi_main.py,1,174.6957967999997,,,,,,,outputs\YORUM7_realtime_benchmark_runmain\simulation_run_rep01.log,outputs\YORUM7_realtime_benchmark_runmain\simulation_run_rep01.err
+2,python multi_main.py,1,202.7483245000003,,,,,,,outputs\YORUM7_realtime_benchmark_runmain\simulation_run_rep02.log,outputs\YORUM7_realtime_benchmark_runmain\simulation_run_rep02.err
+3,python multi_main.py,1,225.03759660000014,,,,,,,outputs\YORUM7_realtime_benchmark_runmain\simulation_run_rep03.log,outputs\YORUM7_realtime_benchmark_runmain\simulation_run_rep03.err

@@ -1,0 +1,54 @@
+{
+  "b5e_csv": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\store\\data_saved\\phase2_B5E_mis0_corner_robustness_refinement_bounded_diagnostic\\phase2_B5E_by_run.csv",
+  "b5f_csv": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\store\\data_saved\\phase2_B5F_mis0_long_propagation_pathspec_audit\\phase2_B5F_by_run.csv",
+  "success_csv": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\store\\data_saved\\phase2_B5D_tight_local_envelope_validation\\case_reports\\b5c000_hp173p144_vm1p127\\phase2_B5A_hp173p144m_vm1p12688mps_sp2deg_combined.csv",
+  "outdir": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840",
+  "figures": [
+    {
+      "figure": "Figure 1",
+      "title": "Validated bounded local U3 envelope evidence",
+      "png": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig01_phase2_success_rates_professional.png",
+      "pdf": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig01_phase2_success_rates_professional.pdf",
+      "caption": "Validated bounded local U3 envelope evidence. B5D is used as the positive bounded-envelope evidence, whereas B5E and B5F are retained as boundary diagnostics."
+    },
+    {
+      "figure": "Figure 2",
+      "title": "Boundary-diagnostic summary",
+      "png": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig02_failure_boundary_summary_professional.png",
+      "pdf": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig02_failure_boundary_summary_professional.pdf",
+      "caption": "Boundary-diagnostic summary for B5E and B5F. The figure separates the absence of strict TAEM closure from timeout or missing-terminal-output cases."
+    },
+    {
+      "figure": "Figure 3",
+      "title": "B5E corner-case terminal error diagnostic",
+      "png": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig03_B5E_terminal_error_diagnostic_professional.png",
+      "pdf": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig03_B5E_terminal_error_diagnostic_professional.pdf",
+      "caption": "B5E corner-case terminal-error diagnostic. The range-to-go term is reported explicitly without code-style variable notation in the figure legend."
+    },
+    {
+      "figure": "Figure 4",
+      "title": "Long-propagation range-closure audit",
+      "png": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig04_B5F_range_closure_audit_professional.png",
+      "pdf": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig04_B5F_range_closure_audit_professional.pdf",
+      "caption": "Long-propagation range-closure audit. The legend is positioned away from the main bars and the range-to-go terminology is presented in publication style."
+    },
+    {
+      "figure": "Figure 5",
+      "title": "Representative successful ground track",
+      "source_csv": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\store\\data_saved\\phase2_B5D_tight_local_envelope_validation\\case_reports\\b5c000_hp173p144_vm1p127\\phase2_B5A_hp173p144m_vm1p12688mps_sp2deg_combined.csv",
+      "png": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig05_representative_ground_track_professional.png",
+      "pdf": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig05_representative_ground_track_professional.pdf",
+      "caption": "Representative successful ground track selected from the B5D tight-local-envelope evidence set."
+    },
+    {
+      "figure": "Figure 6",
+      "title": "Representative successful 3D trajectory",
+      "source_csv": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\store\\data_saved\\phase2_B5D_tight_local_envelope_validation\\case_reports\\b5c000_hp173p144_vm1p127\\phase2_B5A_hp173p144m_vm1p12688mps_sp2deg_combined.csv",
+      "caption": "Representative successful 3D trajectory selected from the B5D tight-local-envelope evidence set.",
+      "png": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig06_representative_3D_trajectory_professional.png",
+      "pdf": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig06_representative_3D_trajectory_professional.pdf",
+      "html": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig06_representative_3D_trajectory_professional.html"
+    }
+  ],
+  "captions": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\phase2_B6_figure_captions_professional.txt"
+}

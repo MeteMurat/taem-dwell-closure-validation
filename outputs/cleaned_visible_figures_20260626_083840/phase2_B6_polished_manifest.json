@@ -1,0 +1,23 @@
+{
+  "output_dir": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840",
+  "b5e_source": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\store\\data_saved\\phase2_B5E_mis0_corner_robustness_refinement_bounded_diagnostic\\phase2_B5E_by_run.csv",
+  "b5f_source": "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\store\\data_saved\\phase2_B5F_mis0_long_propagation_pathspec_audit\\phase2_B5F_by_run.csv",
+  "generated_files": [
+    "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig01_b6_success_rates_polished.png",
+    "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig01_b6_success_rates_polished.pdf",
+    "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig02_b6_boundary_summary_polished.png",
+    "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig02_b6_boundary_summary_polished.pdf",
+    "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig03a_b5e_height_error_polished.png",
+    "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig03a_b5e_height_error_polished.pdf",
+    "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig03b_b5e_velocity_error_polished.png",
+    "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig03b_b5e_velocity_error_polished.pdf",
+    "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig03c_b5e_sgo_error_polished.png",
+    "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig03c_b5e_sgo_error_polished.pdf",
+    "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig04_b5f_range_closure_polished.png",
+    "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig04_b5f_range_closure_polished.pdf",
+    "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig05_ground_track_polished.png",
+    "D:\\acta-paper\\savunma-makale-adımlar\\savunma makale-2.adım\\EntryGuidance-master\\outputs\\cleaned_visible_figures_20260626_083840\\fig05_ground_track_polished.pdf"
+  ],
+  "warnings": [],
+  "trajectory_csv": "store\\data_saved\\phase2_B5E_mis0_corner_robustness_refinement_bounded_diagnostic\\runs\\B5E_C01_soft_left_10deg_hp00500_vp0010.csv"
+}

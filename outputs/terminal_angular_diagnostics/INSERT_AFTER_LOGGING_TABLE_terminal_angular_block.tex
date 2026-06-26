@@ -1,0 +1,20 @@
+To further separate the present TAEM-interface claim from a runway-aligned landing claim, the angular variables were also reconstructed at the dwell-confirmed TAEM event rows. These quantities are reported only as diagnostics because the strict TAEM box in Eq.~\eqref{eq:taem_box} is defined in altitude, velocity, and range-to-go. In particular, \(\Delta\psi\) is the line-of-sight heading error relative to the terminal target direction, not a runway-heading error, and \(\gamma\) is the flight-path angle at the accepted TAEM event. The resulting values are summarized in Table~\ref{tab:terminal_angular_diagnostics}.
+
+\begin{table}[!htbp]
+\centering
+\scriptsize
+\caption{Diagnostic angular quantities at dwell-confirmed TAEM closure. These quantities are reconstructed at the accepted TAEM event row and are not used as strict-pass variables in the present TAEM-interface claim.}
+\label{tab:terminal_angular_diagnostics}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrrrrrr}
+\hline
+Vehicle role & \(N_{\mathrm{evt}}\) & mean \(|\Delta\psi|\) & 95th \(|\Delta\psi|\) & max \(|\Delta\psi|\) & mean \(|\gamma|\) & 95th \(|\gamma|\) & max \(|\gamma|\) \\
+ &  & \((^\circ)\) & \((^\circ)\) & \((^\circ)\) & \((^\circ)\) & \((^\circ)\) & \((^\circ)\) \\
+\hline
+Vehicle~1 & 49 & 0.323 & 0.430 & 0.485 & 3.131 & 3.229 & 3.277 \\
+Vehicle~2 & 50 & 0.366 & 0.506 & 0.589 & 3.058 & 3.204 & 3.308 \\
+Vehicle~3 & 50 & 0.413 & 0.605 & 0.675 & 3.008 & 3.160 & 3.254 \\
+\hline
+\end{tabular}%
+}
+\end{table}

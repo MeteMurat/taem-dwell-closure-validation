@@ -1,0 +1,26 @@
+{
+  "n_csv_files": 50,
+  "n_vehicle_logs": 150,
+  "interface_modes": "terminal_error_columns",
+  "vehicle_portable_dwell_closures": 149,
+  "vehicle_portable_dwell_rate": "149/150 = 0.993333",
+  "case_portable_dwell_closures": 49,
+  "case_portable_dwell_rate": "49/50 = 0.980000",
+  "vehicle_portable_strict_like_closures": 149,
+  "vehicle_portable_strict_like_rate": "149/150 = 0.993333",
+  "case_portable_strict_like_closures": 49,
+  "case_portable_strict_like_rate": "49/50 = 0.980000",
+  "forbidden_guidance_internal_terms_in_used_columns": [],
+  "forbidden_term_status": "none",
+  "tolerance_box": {
+    "tol_h_m": 3000.0,
+    "tol_v_mps": 100.0,
+    "tol_sgo_m": 20000.0,
+    "n_dwell": 3
+  },
+  "target": {
+    "h_taem_m": 25000.0,
+    "v_taem_mps": 2000.0,
+    "s_taem_m": 50000.0
+  }
+}

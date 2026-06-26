@@ -1,0 +1,495 @@
+# -*- coding: utf-8 -*-
+"""
+phase2_B6_figure_polish_package.py
+
+B6 Figure Polish Package v3
+Post-processing only: no simulation, no guidance modification.
+
+v3 fixes
+--------
+1) Does not crash if a bad/missing subfolder exists under store/data_saved.
+2) Ground-track search is optional and safely skipped if no trajectory CSV is found.
+3) B5F timeout/no-CSV annotation no longer raises All-NaN warnings.
+4) Figures 1-4 are always written if B5E/B5F summary CSVs exist.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+import argparse
+import json
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# -----------------------------
+# Publication label helpers
+# -----------------------------
+def vehicle_label(gid) -> str:
+    """Return a publication-friendly vehicle label: Vehicle 1, Vehicle 2, ..."""
+    try:
+        return f"Vehicle {int(float(gid)) + 1}"
+    except Exception:
+        return "Vehicle"
+
+def clean_case_label(text, max_words: int = 6) -> str:
+    """Remove underscore-heavy technical labels from figure axes."""
+    s = str(text)
+    s = s.replace("_", " ").replace("hp", "h+").replace("hm", "h-").replace("vp", "v+").replace("vm", "v-")
+    s = s.replace("deg", " deg").replace("p", ".")
+    words = s.split()
+    if len(words) > max_words:
+        return " ".join(words[:max_words])
+    return s
+
+def audit_label(i: int) -> str:
+    return f"Audit {int(i) + 1}"
+
+def variable_label(name: str) -> str:
+    mapping = {
+        "global_t": "Global time (s)",
+        "t_local": "Local time (s)",
+        "t": "Time (s)",
+        "height": "Altitude (m)",
+        "altitude": "Altitude (m)",
+        "velocity": "Velocity (m/s)",
+        "v": "Velocity (m/s)",
+        "q": "Dynamic pressure (Pa)",
+        "s_go": "Range-to-go (m)",
+        "sgo": "Range-to-go (m)",
+        "range_to_go": "Range-to-go (m)",
+        "E": "Specific energy",
+        "bank_angle": "Bank angle (deg)",
+        "attack_angle": "Angle of attack (deg)",
+        "path_angle": "Flight-path angle (deg)",
+        "heading_angle": "Heading angle (deg)",
+        "delta_psi": "Heading error (deg)",
+        "sigma_max": "Maximum bank angle (deg)",
+        "longitude": "Longitude (deg)",
+        "latitude": "Latitude (deg)",
+        "longitude_deg": "Longitude (deg)",
+        "latitude_deg": "Latitude (deg)",
+        "L12D": "Reference lift-to-drag metric",
+        "CL": "Lift coefficient",
+        "CD": "Drag coefficient",
+        "L": "Lift (N)",
+        "D": "Drag (N)",
+        "box_score": "TAEM in-box score",
+        "taem_h_err": "TAEM altitude error (m)",
+        "taem_v_err": "TAEM velocity error (m/s)",
+        "taem_s_go_err": "TAEM range-to-go error (m)",
+    }
+    return mapping.get(str(name), str(name).replace("_", " "))
+
+def time_label(tcol: str) -> str:
+    return variable_label(tcol)
+
+
+
+OUTDIR = Path("store/data_saved/phase2_B6_publication_figures_polished")
+
+B5D = {
+    "case_success": 49,
+    "case_total": 50,
+    "vehicle_success": 149,
+    "vehicle_total": 150,
+}
+
+B5E_CANDIDATES = [
+    Path("store/data_saved/phase2_B5E_mis0_corner_robustness_refinement_bounded_diagnostic/phase2_B5E_by_run.csv"),
+    Path("store/data_saved/phase2_B5E_mis0_corner_robustness_refinement_bounded_diagnostic/phase2_B5E_best_candidates.csv"),
+    Path("phase2_B5E_by_run.csv"),
+]
+
+B5F_CANDIDATES = [
+    Path("store/data_saved/phase2_B5F_mis0_long_propagation_pathspec_audit/phase2_B5F_by_run.csv"),
+    Path("store/data_saved/phase2_B5F_mis0_long_propagation_pathspec_audit/phase2_B5F_best_candidates.csv"),
+    Path("phase2_B5F_by_run.csv"),
+]
+
+TRAJ_ROOTS = [
+    Path("store/data_saved/phase2_B5D_tight_local_envelope_validation_report"),
+    Path("store/data_saved/phase2_B5E_mis0_corner_robustness_refinement_bounded_diagnostic"),
+    Path("store/data_saved/phase2_B5F_mis0_long_propagation_pathspec_audit"),
+    # General fallback is intentionally last and shallow/robust.
+    Path("store/data_saved"),
+]
+
+
+def parse_args():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--skip-ground-track", action="store_true",
+                    help="Skip trajectory CSV search and Figure 5 generation.")
+    ap.add_argument("--outdir", default=str(OUTDIR),
+                    help="Output directory. Default: store/data_saved/phase2_B6_publication_figures_polished")
+    return ap.parse_args()
+
+
+def ensure_dir(path: Path) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+
+
+def first_existing(paths):
+    for p in paths:
+        if p.exists():
+            return p
+    return None
+
+
+def safe_read_csv(path):
+    if path is None:
+        return None
+    try:
+        return pd.read_csv(path)
+    except Exception as exc:
+        print(f"[WARN] Could not read {path}: {exc}")
+        return None
+
+
+def bool_col(df: pd.DataFrame | None, name: str) -> pd.Series:
+    if df is None:
+        return pd.Series([], dtype=bool)
+    if name not in df.columns:
+        return pd.Series([False] * len(df), index=df.index)
+    s = df[name]
+    if pd.api.types.is_bool_dtype(s):
+        return s.fillna(False)
+    if pd.api.types.is_numeric_dtype(s):
+        return pd.to_numeric(s, errors="coerce").fillna(0.0) > 0.5
+    return s.astype(str).str.strip().str.lower().isin(["1", "true", "t", "yes", "y", "pass", "pass_strict"])
+
+
+def num_col(df: pd.DataFrame | None, name: str) -> pd.Series:
+    if df is None:
+        return pd.Series([], dtype=float)
+    if name not in df.columns:
+        return pd.Series([np.nan] * len(df), index=df.index, dtype=float)
+    return pd.to_numeric(df[name], errors="coerce")
+
+
+def save_fig(fig, outdir: Path, stem: str):
+    png = outdir / f"{stem}.png"
+    pdf = outdir / f"{stem}.pdf"
+    fig.savefig(png, dpi=300, bbox_inches="tight")
+    fig.savefig(pdf, bbox_inches="tight")
+    plt.close(fig)
+    return [str(png), str(pdf)]
+
+
+def figure1_success_rates(outdir: Path, b5e: pd.DataFrame | None, b5f: pd.DataFrame | None):
+    labels = ["B5D case-level\nclosure", "B5D vehicle-level\nclosure", "B5E strict\nclosure", "B5F strict\nclosure"]
+    vals = [
+        B5D["case_success"] / B5D["case_total"],
+        B5D["vehicle_success"] / B5D["vehicle_total"],
+        float(bool_col(b5e, "strict_pass").mean()) if b5e is not None and len(b5e) else np.nan,
+        float(bool_col(b5f, "strict_pass").mean()) if b5f is not None and len(b5f) else np.nan,
+    ]
+
+    fig = plt.figure(figsize=(8.2, 4.8))
+    ax = fig.add_subplot(1, 1, 1)
+    ax.bar(labels, vals)
+    ax.set_ylim(0, 1.05)
+    ax.set_ylabel("Success rate")
+    ax.set_title("Validated bounded local U3 envelope evidence")
+    ax.grid(True, axis="y", alpha=0.30)
+    for i, v in enumerate(vals):
+        if np.isfinite(v):
+            ax.text(i, min(1.02, v + 0.025), f"{100*v:.1f}%", ha="center", va="bottom", fontsize=9)
+    fig.tight_layout()
+    return save_fig(fig, outdir, "fig01_b6_success_rates_polished")
+
+
+def figure2_boundary_summary(outdir: Path, b5e: pd.DataFrame | None, b5f: pd.DataFrame | None):
+    labels = ["B5E", "B5F"]
+    non_pass = []
+    timeout = []
+
+    for df in [b5e, b5f]:
+        if df is None or len(df) == 0:
+            non_pass.append(np.nan)
+            timeout.append(np.nan)
+        else:
+            non_pass.append(float((~bool_col(df, "strict_pass")).mean()))
+            timeout.append(float(bool_col(df, "timed_out").mean()) if "timed_out" in df.columns else 0.0)
+
+    x = np.arange(len(labels))
+    width = 0.35
+    fig = plt.figure(figsize=(7.6, 4.8))
+    ax = fig.add_subplot(1, 1, 1)
+    ax.bar(x - width / 2, non_pass, width, label="No strict TAEM closure")
+    ax.bar(x + width / 2, timeout, width, label="Timeout or no terminal output")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.set_ylim(0, 1.05)
+    ax.set_ylabel("Rate")
+    ax.set_title("Failure-boundary diagnostic summary")
+    ax.grid(True, axis="y", alpha=0.30)
+    ax.legend(loc="best")
+
+    for xx, rr in zip(x - width / 2, non_pass):
+        if np.isfinite(rr):
+            ax.text(xx, min(1.02, rr + 0.025), f"{100*rr:.1f}%", ha="center", va="bottom", fontsize=9)
+    for xx, rr in zip(x + width / 2, timeout):
+        if np.isfinite(rr):
+            ax.text(xx, min(1.02, rr + 0.025), f"{100*rr:.1f}%", ha="center", va="bottom", fontsize=9)
+
+    fig.tight_layout()
+    return save_fig(fig, outdir, "fig02_b6_boundary_summary_polished")
+
+
+def rank_b5e(df: pd.DataFrame, n: int = 12) -> pd.DataFrame:
+    d = df.copy()
+    if "score" in d.columns:
+        d["_score"] = pd.to_numeric(d["score"], errors="coerce").fillna(1e99)
+        d = d.sort_values("_score", ascending=True)
+    return d.head(min(n, len(d)))
+
+
+def candidate_labels(df: pd.DataFrame):
+    return [f"Candidate {i+1}" for i in range(len(df))]
+
+
+def figure3_error_bar(outdir: Path, df: pd.DataFrame, col: str, ylabel: str, stem: str, title: str, scale: float):
+    d = rank_b5e(df, 12)
+    labels = candidate_labels(d)
+    vals = num_col(d, col).abs() / scale
+
+    fig = plt.figure(figsize=(10.2, 4.8))
+    ax = fig.add_subplot(1, 1, 1)
+    ax.bar(np.arange(len(d)), vals)
+    ax.set_xticks(np.arange(len(d)))
+    ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=8)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.grid(True, axis="y", alpha=0.30)
+    fig.tight_layout()
+    return save_fig(fig, outdir, stem)
+
+
+def safe_max_finite(values, fallback=0.0):
+    vals = [float(v) for v in values if pd.notna(v) and np.isfinite(float(v))]
+    return max(vals) if vals else fallback
+
+
+def figure4_b5f_range(outdir: Path, b5f: pd.DataFrame):
+    d = b5f.copy()
+    labels = [audit_label(i) for i in range(len(d))]
+    start = num_col(d, "s_go_start") / 1000.0
+    final = num_col(d, "s_go_final") / 1000.0
+    timed = bool_col(d, "timed_out") if "timed_out" in d.columns else pd.Series([False] * len(d))
+
+    x = np.arange(len(d))
+    width = 0.36
+    fig = plt.figure(figsize=(10.5, 5.1))
+    ax = fig.add_subplot(1, 1, 1)
+
+    ax.bar(x - width / 2, start, width, label="Initial range-to-go")
+    ax.bar(x + width / 2, final, width, label="Final range-to-go")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=35, ha="right", fontsize=8)
+    ax.set_ylabel("Range-to-go (km)")
+    ax.set_title("B5F long-propagation range-closure diagnostic")
+    ax.grid(True, axis="y", alpha=0.30)
+    ax.legend(loc="best")
+
+    finite_overall = pd.concat([start, final]).dropna()
+    finite_overall = finite_overall[np.isfinite(finite_overall)]
+    default_y = float(finite_overall.max()) if len(finite_overall) else 1000.0
+
+    for i in range(len(d)):
+        ymax = safe_max_finite([start.iloc[i], final.iloc[i]], fallback=default_y * 0.08)
+        if bool(timed.iloc[i]):
+            ax.text(i, ymax + max(150.0, 0.025 * max(default_y, 1.0)), "No usable terminal CSV",
+                    ha="center", va="bottom", rotation=90, fontsize=8)
+        elif np.isfinite(start.iloc[i]) and np.isfinite(final.iloc[i]) and abs(start.iloc[i]) > 1e-9:
+            drop = 100.0 * (start.iloc[i] - final.iloc[i]) / start.iloc[i]
+            ax.text(i, max(start.iloc[i], final.iloc[i]) * 1.025, f"{drop:.1f}% range reduction",
+                    ha="center", va="bottom", fontsize=8)
+
+    fig.tight_layout()
+    return save_fig(fig, outdir, "fig04_b5f_range_closure_polished")
+
+
+def maybe_rad2deg(series: pd.Series) -> pd.Series:
+    x = pd.to_numeric(series, errors="coerce").astype(float)
+    mx = np.nanmax(np.abs(x.to_numpy())) if len(x) else np.nan
+    if np.isfinite(mx) and mx < 6.5:
+        return np.degrees(x)
+    return x
+
+
+def iter_csv_files_robust(root: Path):
+    """Robust CSV iterator that skips broken/deleted/unreadable folders."""
+    if not root.exists():
+        return
+    # Avoid scanning the output folder recursively.
+    skip_parts = {"phase2_B6_publication_figures_polished", "phase2_B6_publication_figuressss"}
+    for dirpath, dirnames, filenames in os.walk(root, topdown=True, onerror=lambda e: print(f"[WARN] os.walk skipped: {e}")):
+        # Mutate dirnames in-place to prevent descent into known bad/output dirs.
+        dirnames[:] = [d for d in dirnames if d not in skip_parts]
+        for fn in filenames:
+            if fn.lower().endswith(".csv"):
+                yield Path(dirpath) / fn
+
+
+def find_trajectory_csv():
+    skip_names = {
+        "phase2_B5E_by_run.csv",
+        "phase2_B5E_best_candidates.csv",
+        "phase2_B5F_by_run.csv",
+        "phase2_B5F_best_candidates.csv",
+        "phase2_B6_campaign_summary.csv",
+    }
+
+    candidates = []
+    for root in TRAJ_ROOTS:
+        try:
+            for p in iter_csv_files_robust(root):
+                if p.name not in skip_names:
+                    candidates.append(p)
+        except Exception as exc:
+            print(f"[WARN] Trajectory search skipped root {root}: {exc}")
+
+    # Newest first, but stat robustly.
+    def _mtime(p: Path):
+        try:
+            return p.stat().st_mtime
+        except Exception:
+            return -1
+
+    for p in sorted(candidates, key=_mtime, reverse=True):
+        try:
+            cols = pd.read_csv(p, nrows=3).columns
+            if all(c in cols for c in ["longitude", "latitude", "height"]):
+                return p
+        except Exception:
+            continue
+    return None
+
+
+def figure5_ground_track(outdir: Path, traj_path: Path):
+    df = pd.read_csv(traj_path)
+    if "mis_id" not in df.columns:
+        df["mis_id"] = 0
+
+    tcol = "global_t" if "global_t" in df.columns else ("t" if "t" in df.columns else None)
+    if tcol is None:
+        df["__t__"] = np.arange(len(df))
+        tcol = "__t__"
+
+    df["_lon_deg"] = maybe_rad2deg(df["longitude"])
+    df["_lat_deg"] = maybe_rad2deg(df["latitude"])
+
+    fig = plt.figure(figsize=(7.2, 5.8))
+    ax = fig.add_subplot(1, 1, 1)
+    for mid, g in df.groupby("mis_id"):
+        g = g.sort_values(tcol)
+        ax.plot(g["_lon_deg"], g["_lat_deg"], label=vehicle_label(mid))
+        ax.plot(float(g["_lon_deg"].iloc[0]), float(g["_lat_deg"].iloc[0]), marker="o")
+        ax.plot(float(g["_lon_deg"].iloc[-1]), float(g["_lat_deg"].iloc[-1]), marker="x")
+
+    ax.set_xlabel("Longitude (deg)")
+    ax.set_ylabel("Latitude (deg)")
+    ax.set_title("Representative failure-boundary ground track")
+    ax.grid(True, alpha=0.30)
+    ax.legend(loc="best", fontsize=8)
+    fig.tight_layout()
+    return save_fig(fig, outdir, "fig05_ground_track_polished")
+
+
+def write_captions(outdir: Path, traj_path):
+    text = """Figure 1. Validated bounded local U3 envelope evidence. The B5D campaign provides the primary positive evidence with 49/50 case-level success and 149/150 vehicle-level success. B5E and B5F are shown only as strict-pass references and are not interpreted as positive universality evidence.
+
+Figure 2. Failure-boundary diagnostic summary. B5E and B5F delimit the current certified envelope. The B5F timeout rate indicates that the mis0-left corner remains outside the presently validated operating region.
+
+Figure 3a. B5E terminal height-error diagnostic. The best-ranked B5E candidates are shown using absolute terminal height error in kilometers.
+
+Figure 3b. B5E terminal velocity-error diagnostic. The best-ranked B5E candidates are shown using absolute terminal velocity error in km/s.
+
+Figure 3c. B5E terminal range-to-go error diagnostic. The best-ranked B5E candidates are shown using absolute terminal s_go error in kilometers.
+
+Figure 4. B5F long-propagation range-closure diagnostic. Cases with usable range data show the initial and final s_go values. Cases labelled TIMEOUT / NO CSV correspond to long-propagation runs that did not produce a usable terminal row.
+
+Figure 5. Representative failure-boundary ground track. This trajectory is shown as a representative diagnostic/failure-boundary path and should not be interpreted as a nominal-success trajectory.
+
+Figure 6. Interactive 3D trajectory, if separately generated. When used in the manuscript, it should be described as a representative diagnostic trajectory in longitude-latitude-height space, not as a fully successful TAEM-closure example.
+"""
+    (outdir / "phase2_B6_polished_figure_captions.txt").write_text(text, encoding="utf-8")
+    note = f"Representative trajectory CSV used for Figure 5: {traj_path}\n" if traj_path else "No trajectory CSV was found, so Figure 5 was not generated.\n"
+    (outdir / "fig05_ground_track_source_note.txt").write_text(note, encoding="utf-8")
+
+
+def main():
+    args = parse_args()
+    root = Path.cwd()
+    outdir = root / Path(args.outdir)
+    ensure_dir(outdir)
+
+    b5e_path = first_existing([root / p for p in B5E_CANDIDATES])
+    b5f_path = first_existing([root / p for p in B5F_CANDIDATES])
+    b5e = safe_read_csv(b5e_path)
+    b5f = safe_read_csv(b5f_path)
+
+    manifest = {
+        "output_dir": str(outdir),
+        "b5e_source": str(b5e_path) if b5e_path else None,
+        "b5f_source": str(b5f_path) if b5f_path else None,
+        "generated_files": [],
+        "warnings": [],
+    }
+
+    manifest["generated_files"] += figure1_success_rates(outdir, b5e, b5f)
+    manifest["generated_files"] += figure2_boundary_summary(outdir, b5e, b5f)
+
+    if b5e is not None and len(b5e):
+        if "taem_h_err_final" in b5e.columns:
+            manifest["generated_files"] += figure3_error_bar(outdir, b5e, "taem_h_err_final", "|h error| (km)", "fig03a_b5e_height_error_polished", "B5E terminal height-error diagnostic", 1000.0)
+        if "taem_v_err_final" in b5e.columns:
+            manifest["generated_files"] += figure3_error_bar(outdir, b5e, "taem_v_err_final", "|v error| (km/s)", "fig03b_b5e_velocity_error_polished", "B5E terminal velocity-error diagnostic", 1000.0)
+        if "taem_s_go_err_final" in b5e.columns:
+            manifest["generated_files"] += figure3_error_bar(outdir, b5e, "taem_s_go_err_final", "|s_go error| (km)", "fig03c_b5e_sgo_error_polished", "B5E terminal range-to-go error diagnostic", 1000.0)
+    else:
+        manifest["warnings"].append("B5E CSV not found or empty; Figure 3 series skipped.")
+
+    if b5f is not None and len(b5f):
+        manifest["generated_files"] += figure4_b5f_range(outdir, b5f)
+    else:
+        manifest["warnings"].append("B5F CSV not found or empty; Figure 4 skipped.")
+
+    traj_path = None
+    if not args.skip_ground_track:
+        traj_path = find_trajectory_csv()
+        if traj_path is not None:
+            try:
+                manifest["generated_files"] += figure5_ground_track(outdir, traj_path)
+            except Exception as exc:
+                msg = f"Figure 5 skipped because trajectory plotting failed: {exc}"
+                print("[WARN]", msg)
+                manifest["warnings"].append(msg)
+                traj_path = None
+        else:
+            manifest["warnings"].append("No trajectory CSV found; Figure 5 skipped.")
+    else:
+        manifest["warnings"].append("Ground-track search skipped by --skip-ground-track.")
+
+    write_captions(outdir, traj_path)
+    manifest["trajectory_csv"] = str(traj_path) if traj_path else None
+
+    manifest_path = outdir / "phase2_B6_polished_manifest.json"
+    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    print("[B6-POLISH] Finished.")
+    print("[B6-POLISH] Output dir:", outdir)
+    for f in manifest["generated_files"]:
+        print(" -", f)
+    print(" -", outdir / "phase2_B6_polished_figure_captions.txt")
+    print(" -", manifest_path)
+    if manifest["warnings"]:
+        print("[B6-POLISH] Warnings:")
+        for w in manifest["warnings"]:
+            print(" -", w)
+
+
+if __name__ == "__main__":
+    main()

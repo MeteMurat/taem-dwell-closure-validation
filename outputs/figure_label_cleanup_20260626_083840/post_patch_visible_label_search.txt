@@ -1,0 +1,22 @@
+﻿Post-patch visible-label search: 06/26/2026 08:40:24
+
+PATTERN: B5D tight local-envelope validation statistics
+  no hits
+
+PATTERN: B5D case-level
+  D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B6_figure_polish_package.py:181: labels = ["B5D case-level\nclosure", "B5D vehicle-level\nclosure", "B5E strict\nclosure", "B5F strict\nclosure"]
+  D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B6_make_publication_figures.py:193: "B5D case-level\nclosure",
+
+PATTERN: B5D vehicle-level
+  D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B6_figure_polish_package.py:181: labels = ["B5D case-level\nclosure", "B5D vehicle-level\nclosure", "B5E strict\nclosure", "B5F strict\nclosure"]
+  D:\acta-paper\savunma-makale-adımlar\savunma makale-2.adım\EntryGuidance-master\phase2_B6_make_publication_figures.py:194: "B5D vehicle-level\nclosure",
+
+PATTERN: B5E normalized terminal-residual diagnostic
+  no hits
+
+PATTERN: B5F long-propagation range-closure audit
+  no hits
+
+PATTERN: Failure-boundary diagnostic summary
+  no hits
+

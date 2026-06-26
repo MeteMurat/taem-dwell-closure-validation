@@ -1,0 +1,316 @@
+# -*- coding: utf-8 -*-
+"""
+plot_csv_report.py (v2)
+Create a publication-friendly plot bundle from a multi-vehicle CSV.
+
+Outputs (in --outdir):
+- timeseries_plots.pdf          (multi-page, one figure per page)
+- *_vs_global_t.png             (per-variable time series)
+- ground_track_lonlat.png       (lon-lat ground track)
+- summary_by_vehicle.csv        (per-vehicle summary stats)
+
+Usage (most common):
+python plot_csv_report.py --input ".\store\data_saved\multiSimulation_case.csv" --outdir ".\store\data_saved\plots_multi" --downsample 10 --idcol mis_id
+
+If --idcol is omitted:
+- uses 'mis_id' if present, otherwise treats the file as single-vehicle.
+
+Notes:
+- Expects a time column 'global_t' (falls back to row index if missing).
+- Expects 'longitude'/'latitude' (radians or degrees) and 'height' for ground track.
+- Uses matplotlib only (no seaborn).
+"""
+import argparse
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+
+
+def maybe_rad2deg(series: pd.Series) -> pd.Series:
+    """If values look like radians, convert to degrees (heuristic)."""
+    a = pd.to_numeric(series, errors="coerce").astype(float)
+    mx = np.nanmax(np.abs(a.to_numpy())) if len(a) else np.nan
+    if np.isfinite(mx) and mx < 6.5:  # ~2*pi
+        return np.degrees(a)
+    return a
+
+
+def pick_first_existing(df: pd.DataFrame, candidates):
+    for c in candidates:
+        if c in df.columns:
+            return c
+    return None
+
+
+def parse_args():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--input", required=True, help="Input CSV path")
+    ap.add_argument("--outdir", required=True, help="Output directory")
+    ap.add_argument("--downsample", type=int, default=1, help="Downsample rows (keep every Nth)")
+    ap.add_argument("--idcol", default=None, help="Vehicle id column (default: mis_id if present)")
+    ap.add_argument("--vars", nargs="*", default=None, help="Variables to plot (default: sensible auto list)")
+    ap.add_argument(
+        "--xcol",
+        default="auto",
+        choices=["auto", "global_t", "t_local"],
+        help=(
+            "Time axis for all timeseries plots. 'global_t' is simulation-wide time; 't_local' is per-vehicle time "
+            "referenced to its launch_time. 'auto' uses t_local if available (or derivable), otherwise global_t."
+        ),
+    )
+    return ap.parse_args()
+
+
+def ensure_t_local(df: pd.DataFrame, idcol: str) -> pd.DataFrame:
+    """Ensure df contains a numeric t_local column.
+
+    Priority:
+    1) If already present -> keep.
+    2) If global_t and launch_time exist -> t_local = global_t - launch_time.
+    3) Else -> t_local = global_t - min(global_t) per vehicle.
+    """
+    if "t_local" in df.columns:
+        return df
+    if "global_t" not in df.columns:
+        return df
+
+    g = df.copy()
+    if "launch_time" in g.columns:
+        g["t_local"] = safe_numeric(g["global_t"]) - safe_numeric(g["launch_time"])
+    else:
+        g["t_local"] = safe_numeric(g["global_t"]) - g.groupby(idcol)["global_t"].transform("min")
+    return g
+
+
+def ensure_dir(p: Path):
+    p.mkdir(parents=True, exist_ok=True)
+
+
+def safe_numeric(s: pd.Series) -> pd.Series:
+    return pd.to_numeric(s, errors="coerce").astype(float)
+
+
+def plot_timeseries(pdf: PdfPages, outdir: Path, df: pd.DataFrame, idcol: str, tcol: str, var: str):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+
+    for gid, g in df.groupby(idcol):
+        g = g.sort_values(tcol)
+        x = safe_numeric(g[tcol])
+        y = safe_numeric(g[var])
+        ax.plot(x, y, label=f"{idcol}={gid}")
+        # TAEM event marker (first taem_reached per vehicle)
+        if 'taem_reached' in g.columns:
+            try:
+                gt = g[g['taem_reached'].astype(bool)]
+                if len(gt) > 0:
+                    gt = gt.sort_values(tcol).iloc[0]
+                    x_taem = safe_numeric(pd.Series([gt[tcol]])).iloc[0]
+                    if np.isfinite(x_taem):
+                        ax.axvline(x_taem, linestyle='--', linewidth=1.0, alpha=0.6)
+            except Exception:
+                pass
+
+    ax.set_xlabel(tcol)
+    ax.set_ylabel(var)
+    ax.set_title(f"{var} vs {tcol}")
+    ax.grid(True, alpha=0.3)
+    ax.legend(loc="best", fontsize=8)
+
+    png_path = outdir / f"{var}_vs_{tcol}.png"
+    fig.savefig(png_path, dpi=200, bbox_inches="tight")
+    pdf.savefig(fig, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_ground_track(pdf: PdfPages, outdir: Path, df: pd.DataFrame, idcol: str):
+    loncol = pick_first_existing(df, ["longitude", "lon", "lng"])
+    latcol = pick_first_existing(df, ["latitude", "lat"])
+    if loncol is None or latcol is None:
+        return
+
+    d = df.copy()
+    d["_lon_deg"] = maybe_rad2deg(d[loncol])
+    d["_lat_deg"] = maybe_rad2deg(d[latcol])
+
+    # Optional: plot the target location if logged
+    tar_lon_deg_col = pick_first_existing(d, ["tar_longitude_deg", "target_longitude_deg"])
+    tar_lat_deg_col = pick_first_existing(d, ["tar_latitude_deg", "target_latitude_deg"])
+    if tar_lon_deg_col and tar_lat_deg_col:
+        # Use the first non-NaN target point as representative
+        tlon = safe_numeric(d[tar_lon_deg_col]).dropna()
+        tlat = safe_numeric(d[tar_lat_deg_col]).dropna()
+        if len(tlon) and len(tlat):
+            d["_tar_lon_deg"] = float(tlon.iloc[0])
+            d["_tar_lat_deg"] = float(tlat.iloc[0])
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    for gid, g in d.groupby(idcol):
+        ax.plot(safe_numeric(g["_lon_deg"]), safe_numeric(g["_lat_deg"]), label=f"{idcol}={gid}")
+        # Mark TAEM point if available
+        if 'taem_reached' in g.columns:
+            try:
+                gt = g[g['taem_reached'].astype(bool)]
+                if len(gt) > 0:
+                    gt = gt.iloc[0]
+                    ax.plot(float(gt['_lon_deg']), float(gt['_lat_deg']), marker='x')
+            except Exception:
+                pass
+        # mark end point
+        ax.plot(float(g["_lon_deg"].iloc[-1]), float(g["_lat_deg"].iloc[-1]), marker="o")
+
+    # Target marker (drawn once)
+    if "_tar_lon_deg" in d.columns and "_tar_lat_deg" in d.columns:
+        ax.plot(float(d["_tar_lon_deg"].iloc[0]), float(d["_tar_lat_deg"].iloc[0]), marker="*", markersize=10)
+
+    ax.set_xlabel("Longitude (deg)")
+    ax.set_ylabel("Latitude (deg)")
+    ax.set_title("Ground track (lon-lat)")
+    ax.grid(True, alpha=0.3)
+    ax.legend(loc="best", fontsize=8)
+
+    png_path = outdir / "ground_track_lonlat.png"
+    fig.savefig(png_path, dpi=200, bbox_inches="tight")
+    pdf.savefig(fig, bbox_inches="tight")
+    plt.close(fig)
+
+
+def make_summary(outdir: Path, df: pd.DataFrame, idcol: str, tcol: str):
+    cols = df.columns
+    loncol = pick_first_existing(df, ["longitude", "lon", "lng"])
+    latcol = pick_first_existing(df, ["latitude", "lat"])
+    hcol = pick_first_existing(df, ["height", "altitude", "h"])
+    vcol = pick_first_existing(df, ["velocity", "v"])
+    qcol = pick_first_existing(df, ["q"])
+    sgocol = pick_first_existing(df, ["s_go", "ref_sgo"])
+    L12Dcol = pick_first_existing(df, ["L12D", "ref_L12D"])
+
+    rows = []
+    for gid, g in df.groupby(idcol):
+        g = g.sort_values(tcol)
+        row = {"mis_id": gid}
+        row["t_start"] = float(safe_numeric(g[tcol]).iloc[0])
+        row["t_end"] = float(safe_numeric(g[tcol]).iloc[-1])
+        if hcol: row["h_min_m"] = float(np.nanmin(safe_numeric(g[hcol]).to_numpy()))
+        if hcol: row["h_end_m"] = float(safe_numeric(g[hcol]).iloc[-1])
+        if vcol: row["v_min"] = float(np.nanmin(safe_numeric(g[vcol]).to_numpy()))
+        if vcol: row["v_end"] = float(safe_numeric(g[vcol]).iloc[-1])
+        if qcol: row["q_max"] = float(np.nanmax(safe_numeric(g[qcol]).to_numpy()))
+        if sgocol: row["s_go_min"] = float(np.nanmin(safe_numeric(g[sgocol]).to_numpy()))
+        if L12Dcol: row["L12D_min"] = float(np.nanmin(safe_numeric(g[L12Dcol]).to_numpy()))
+
+        if loncol and latcol:
+            lon_deg = maybe_rad2deg(g[loncol])
+            lat_deg = maybe_rad2deg(g[latcol])
+            row["lon_start_deg"] = float(safe_numeric(lon_deg).iloc[0])
+            row["lat_start_deg"] = float(safe_numeric(lat_deg).iloc[0])
+            row["lon_end_deg"] = float(safe_numeric(lon_deg).iloc[-1])
+            row["lat_end_deg"] = float(safe_numeric(lat_deg).iloc[-1])
+        rows.append(row)
+
+    out = pd.DataFrame(rows)
+    out.to_csv(outdir / "summary_by_vehicle.csv", index=False)
+
+
+def auto_vars(df: pd.DataFrame) -> list:
+    # Sensible default set (only those present will be used)
+    preferred = [
+        "height", "velocity", "q", "s_go", "L12D",
+        "bank_angle", "attack_angle", "path_angle", "heading_angle",
+        "CL", "CD", "L", "D", "E",
+        "sigma_max",
+        "longitude", "latitude",
+    ]
+    # include variants that appear in your data
+    expanded = []
+    for v in preferred:
+        if v in df.columns:
+            expanded.append(v)
+    # add some common alternates if present
+    alternates = {
+        "bank_angle": ["bank", "sigma"],
+        "attack_angle": ["alpha", "aoa"],
+        "path_angle": ["gamma"],
+        "heading_angle": ["psi", "heading"],
+    }
+    for base, alts in alternates.items():
+        if base not in expanded:
+            for a in alts:
+                if a in df.columns:
+                    expanded.append(a); break
+    return expanded
+
+
+def main():
+    args = parse_args()
+    inp = Path(args.input)
+    outdir = Path(args.outdir)
+    ensure_dir(outdir)
+
+    df = pd.read_csv(inp)
+
+    idcol = args.idcol
+    if not idcol:
+        idcol = "mis_id" if "mis_id" in df.columns else None
+    if not idcol or idcol not in df.columns:
+        df["mis_id"] = 0
+        idcol = "mis_id"
+
+    # Ensure a baseline global time exists
+    if "global_t" not in df.columns:
+        df["global_t"] = np.arange(len(df), dtype=float)
+
+    # Optionally derive t_local
+    if args.xcol in ("t_local", "auto"):
+        df = ensure_t_local(df, idcol)
+
+    # Final x-axis choice
+    if args.xcol == "global_t":
+        tcol = "global_t"
+    elif args.xcol == "t_local":
+        tcol = "t_local" if "t_local" in df.columns else "global_t"
+    else:  # auto
+        tcol = "t_local" if "t_local" in df.columns else "global_t"
+
+    df = df.sort_values([idcol, tcol]).reset_index(drop=True)
+
+    if args.downsample and args.downsample > 1:
+        df = df.iloc[::args.downsample].reset_index(drop=True)
+
+    vars_to_plot = args.vars if args.vars else auto_vars(df)
+
+    # Create PDF bundle
+    pdf_path = outdir / "timeseries_plots.pdf"
+    with PdfPages(pdf_path) as pdf:
+        # first page: ground track if possible
+        plot_ground_track(pdf, outdir, df, idcol)
+
+        # timeseries pages
+        for var in vars_to_plot:
+            if var == "longitude" or var == "latitude":
+                # lon/lat over time are still useful, but convert heuristically to degrees for readability
+                tmp = df.copy()
+                if var == "longitude":
+                    tmp["longitude_deg"] = maybe_rad2deg(tmp[var])
+                    plot_timeseries(pdf, outdir, tmp, idcol, tcol, "longitude_deg")
+                else:
+                    tmp["latitude_deg"] = maybe_rad2deg(tmp[var])
+                    plot_timeseries(pdf, outdir, tmp, idcol, tcol, "latitude_deg")
+                continue
+
+            if var in df.columns:
+                plot_timeseries(pdf, outdir, df, idcol, tcol, var)
+
+    make_summary(outdir, df, idcol, tcol)
+
+    print(f"[OK] Wrote: {pdf_path}")
+    print(f"[OK] Wrote: {outdir / 'summary_by_vehicle.csv'}")
+    print(f"[INFO] PNGs are in: {outdir}")
+
+
+if __name__ == "__main__":
+    main()

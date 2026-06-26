@@ -1,0 +1,4 @@
+vehicle_id,failure_mode,taem_lb_score,s_go_last_m,end_reason,guide_phase_last
+1,Near-success / no dwell,0.0006328590579395641,275208.5577213663,touchdown,bias_explicit_guidance
+0,Near-success / no dwell,0.0010876048168875665,52694.27185582675,touchdown,bias_explicit_guidance
+2,Multi-channel near-hit,62.47639562796603,6178438.02195582,touchdown,bias_explicit_guidance

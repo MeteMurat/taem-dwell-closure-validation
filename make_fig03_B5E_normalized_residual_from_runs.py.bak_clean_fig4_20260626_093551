@@ -1,0 +1,422 @@
+﻿# -*- coding: utf-8 -*-
+"""
+make_fig03_B5E_normalized_residual_from_runs.py
+
+Purpose
+-------
+Create the revised manuscript Fig. 4:
+Normalized terminal-residual diagnostic.
+
+It supports two input modes:
+
+1) Direct terminal/vehicle summary CSV:
+   The CSV already contains one or more of:
+     taem_h_err_final, taem_v_err_final, taem_s_go_err_final
+     taem_h_err,       taem_v_err,       taem_s_go_err
+
+2) B5E run table CSV:
+   The CSV contains a column named "csv" pointing to run trajectory CSV files.
+   The script opens those trajectory CSVs, extracts terminal/final TAEM errors,
+   normalizes them, and plots them.
+
+Normalization
+-------------
+    |e_h| / epsilon_h
+    |e_v| / epsilon_v
+    |e_s| / epsilon_s
+
+Default strict TAEM tolerances:
+    epsilon_h = 3000 m
+    epsilon_v = 100 m/s
+    epsilon_s = 20000 m
+
+Default target values used only when explicit TAEM error columns are absent:
+    h_TAEM = 25000 m
+    v_TAEM = 2000 m/s
+    s_TAEM = 50000 m
+
+Outputs
+-------
+- fig03_B5E_terminal_error_diagnostic_professional.pdf
+- fig03_B5E_terminal_error_diagnostic_professional.png
+- b5e_normalized_terminal_residuals.csv
+
+Example, if you have a B5E by-run table:
+    python make_fig03_B5E_normalized_residual_from_runs.py ^
+      --input ".\\store\\data_saved\\phase2_B5E_by_run.csv" ^
+      --outdir ".\\figs"
+
+Example, if you have a terminal summary CSV:
+    python make_fig03_B5E_normalized_residual_from_runs.py ^
+      --input ".\\store\\data_saved\\phase2_B5E_by_vehicle_all.csv" ^
+      --outdir ".\\figs"
+"""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+from typing import Optional
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+def safe_num(s: pd.Series) -> pd.Series:
+    return pd.to_numeric(s, errors="coerce").astype(float)
+
+
+def pick_col(df: pd.DataFrame, candidates: list[str], required: bool = True) -> Optional[str]:
+    for c in candidates:
+        if c in df.columns:
+            return c
+    if required:
+        raise ValueError(
+            "Required column not found. Tried: "
+            + ", ".join(candidates)
+            + "\nAvailable columns:\n"
+            + "\n".join(df.columns)
+        )
+    return None
+
+
+def boolish(v) -> bool:
+    if isinstance(v, (bool, np.bool_)):
+        return bool(v)
+    if pd.isna(v):
+        return False
+    if isinstance(v, (int, float, np.integer, np.floating)):
+        return float(v) != 0.0
+    return str(v).strip().lower() in {"1", "true", "yes", "y", "t"}
+
+
+def find_existing_path(raw_path: str, search_root: Path) -> Optional[Path]:
+    """Resolve Windows or relative paths robustly on the local machine."""
+    if raw_path is None or str(raw_path).strip() == "" or str(raw_path).lower() == "nan":
+        return None
+
+    p = Path(str(raw_path))
+
+    # 1) as-is
+    if p.exists():
+        return p
+
+    # 2) normalize backslashes
+    p2 = Path(str(raw_path).replace("\\", "/"))
+    if p2.exists():
+        return p2
+
+    # 3) relative to current working directory
+    cwd_candidate = Path.cwd() / p2
+    if cwd_candidate.exists():
+        return cwd_candidate
+
+    # 4) relative to input folder
+    root_candidate = search_root / p2.name
+    if root_candidate.exists():
+        return root_candidate
+
+    # 5) search by filename under search_root
+    matches = list(search_root.rglob(p2.name))
+    if matches:
+        return matches[0]
+
+    # 6) search by filename under current working directory
+    matches = list(Path.cwd().rglob(p2.name))
+    if matches:
+        return matches[0]
+
+    return None
+
+
+def extract_terminal_errors_from_df(
+    df: pd.DataFrame,
+    h_taem: float,
+    v_taem: float,
+    s_taem: float,
+) -> tuple[float, float, float, str]:
+    """
+    Return h_err, v_err, s_err, source_mode.
+
+    Priority:
+    1) explicit final TAEM error columns
+    2) explicit TAEM error columns, terminal row
+    3) compute from height/velocity/s_go at best terminal row
+    """
+
+    # explicit final columns
+    h_final = pick_col(df, ["taem_h_err_final", "h_err_final", "height_error_final"], required=False)
+    v_final = pick_col(df, ["taem_v_err_final", "v_err_final", "velocity_error_final"], required=False)
+    s_final = pick_col(df, ["taem_s_go_err_final", "s_go_err_final", "range_error_final"], required=False)
+
+    if h_final and v_final and s_final:
+        row = df.iloc[-1]
+        return (
+            float(pd.to_numeric(row[h_final], errors="coerce")),
+            float(pd.to_numeric(row[v_final], errors="coerce")),
+            float(pd.to_numeric(row[s_final], errors="coerce")),
+            "explicit_final_error_columns",
+        )
+
+    # explicit time-series TAEM error columns
+    h_col = pick_col(df, ["taem_h_err"], required=False)
+    v_col = pick_col(df, ["taem_v_err"], required=False)
+    s_col = pick_col(df, ["taem_s_go_err"], required=False)
+
+    if h_col and v_col and s_col:
+        # Prefer taem-relevant final/terminal row if available.
+        score = safe_num(df[h_col]).abs() / 3000.0 + safe_num(df[v_col]).abs() / 100.0 + safe_num(df[s_col]).abs() / 20000.0
+        if "end_guide" in df.columns:
+            end_rows = df[df["end_guide"].map(boolish)]
+            if len(end_rows):
+                row = end_rows.iloc[-1]
+            else:
+                row = df.loc[int(score.idxmin())]
+        elif "taem_in_box" in df.columns:
+            in_rows = df[df["taem_in_box"].map(boolish)]
+            if len(in_rows):
+                row = in_rows.iloc[-1]
+            else:
+                row = df.loc[int(score.idxmin())]
+        else:
+            row = df.loc[int(score.idxmin())]
+
+        return (
+            float(pd.to_numeric(row[h_col], errors="coerce")),
+            float(pd.to_numeric(row[v_col], errors="coerce")),
+            float(pd.to_numeric(row[s_col], errors="coerce")),
+            "explicit_timeseries_error_columns",
+        )
+
+    # compute from state columns
+    h_state = pick_col(df, ["height", "altitude", "h"], required=False)
+    v_state = pick_col(df, ["velocity", "v"], required=False)
+    s_state = pick_col(df, ["s_go", "sgo", "range_to_go"], required=False)
+
+    if h_state and v_state and s_state:
+        h_err_series = safe_num(df[h_state]) - h_taem
+        v_err_series = safe_num(df[v_state]) - v_taem
+        s_err_series = safe_num(df[s_state]) - s_taem
+
+        # choose closest normalized residual row
+        score = h_err_series.abs() / 3000.0 + v_err_series.abs() / 100.0 + s_err_series.abs() / 20000.0
+        row_idx = int(score.idxmin())
+
+        return (
+            float(h_err_series.loc[row_idx]),
+            float(v_err_series.loc[row_idx]),
+            float(s_err_series.loc[row_idx]),
+            "computed_from_state_at_min_normalized_residual",
+        )
+
+    raise ValueError(
+        "Could not extract TAEM errors. Need either taem_*_err columns "
+        "or height/velocity/s_go columns."
+    )
+
+
+def collect_rows_from_input(
+    input_csv: Path,
+    h_taem: float,
+    v_taem: float,
+    s_taem: float,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Returns:
+      metrics_df: rows with extractable terminal errors
+      missing_df: rows that could not be used
+    """
+    table = pd.read_csv(input_csv)
+    search_root = input_csv.parent
+
+    # Direct mode: input already has terminal errors or state data
+    direct_error_cols = any(c in table.columns for c in [
+        "taem_h_err_final", "taem_v_err_final", "taem_s_go_err_final",
+        "taem_h_err", "taem_v_err", "taem_s_go_err",
+    ])
+
+    direct_state_cols = all(c in table.columns for c in ["height", "velocity"]) and any(c in table.columns for c in ["s_go", "sgo"])
+
+    rows = []
+    missing = []
+
+    if direct_error_cols or direct_state_cols:
+        label_col = pick_col(
+            table,
+            ["case_id", "candidate_id", "run_id", "label", "case_label"],
+            required=False,
+        )
+        if label_col is None:
+            table["_case_label"] = [f"Candidate {i+1}" for i in range(len(table))]
+            label_col = "_case_label"
+
+        # If one file contains many cases, process groupwise. Otherwise process whole file.
+        for label, g in table.groupby(label_col, dropna=False):
+            try:
+                h_err, v_err, s_err, mode = extract_terminal_errors_from_df(g, h_taem, v_taem, s_taem)
+                rows.append({
+                    "case_id": str(label),
+                    "source_csv": str(input_csv),
+                    "h_err_m": h_err,
+                    "v_err_mps": v_err,
+                    "s_go_err_m": s_err,
+                    "source_mode": mode,
+                })
+            except Exception as exc:
+                missing.append({
+                    "case_id": str(label),
+                    "source_csv": str(input_csv),
+                    "reason": str(exc),
+                })
+        return pd.DataFrame(rows), pd.DataFrame(missing)
+
+    # Run-table mode: input has csv paths
+    if "csv" not in table.columns:
+        raise ValueError(
+            "Input CSV is neither a terminal metrics file nor a by-run table with a 'csv' column."
+        )
+
+    label_col = pick_col(table, ["case_id", "candidate_id", "run_id", "label"], required=False)
+    if label_col is None:
+        table["_case_label"] = [f"Candidate {i+1}" for i in range(len(table))]
+        label_col = "_case_label"
+
+    for _, r in table.iterrows():
+        label = str(r.get(label_col, "case"))
+        decision = str(r.get("decision", ""))
+        raw_csv = str(r.get("csv", ""))
+
+        p = find_existing_path(raw_csv, search_root)
+
+        if p is None:
+            missing.append({
+                "case_id": label,
+                "source_csv": raw_csv,
+                "decision": decision,
+                "reason": "run CSV path not found locally",
+            })
+            continue
+
+        try:
+            run_df = pd.read_csv(p)
+            h_err, v_err, s_err, mode = extract_terminal_errors_from_df(run_df, h_taem, v_taem, s_taem)
+            rows.append({
+                "case_id": label,
+                "candidate_id": str(r.get("candidate_id", "")),
+                "source_csv": str(p),
+                "decision": decision,
+                "strict_pass": r.get("strict_pass", ""),
+                "h_err_m": h_err,
+                "v_err_mps": v_err,
+                "s_go_err_m": s_err,
+                "source_mode": mode,
+            })
+        except Exception as exc:
+            missing.append({
+                "case_id": label,
+                "source_csv": str(p),
+                "decision": decision,
+                "reason": str(exc),
+            })
+
+    return pd.DataFrame(rows), pd.DataFrame(missing)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--input", required=True, help="B5E by-run table or terminal metrics CSV")
+    ap.add_argument("--outdir", default="figs", help="Output directory")
+    ap.add_argument("--outname", default="fig03_B5E_terminal_error_diagnostic_professional")
+    ap.add_argument("--max_cases", type=int, default=12, help="Maximum cases to plot")
+    ap.add_argument("--eps_h", type=float, default=3000.0)
+    ap.add_argument("--eps_v", type=float, default=100.0)
+    ap.add_argument("--eps_s", type=float, default=20000.0)
+    ap.add_argument("--h_taem", type=float, default=25000.0)
+    ap.add_argument("--v_taem", type=float, default=2000.0)
+    ap.add_argument("--s_taem", type=float, default=50000.0)
+    args = ap.parse_args()
+
+    input_csv = Path(args.input)
+    outdir = Path(args.outdir)
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    metrics, missing = collect_rows_from_input(
+        input_csv=input_csv,
+        h_taem=args.h_taem,
+        v_taem=args.v_taem,
+        s_taem=args.s_taem,
+    )
+
+    missing_path = outdir / "b5e_normalized_terminal_residuals_missing_cases.csv"
+    missing.to_csv(missing_path, index=False)
+
+    if metrics.empty:
+        print("[ERR] No usable terminal-error rows could be extracted.")
+        print(f"[INFO] Missing/unusable cases written to: {missing_path}")
+        print()
+        print("You need one of these inputs:")
+        print("  1) A B5E by_vehicle/terminal_metrics CSV containing taem_h_err, taem_v_err, taem_s_go_err")
+        print("  2) The actual B5E run trajectory CSVs referenced by the 'csv' column")
+        raise SystemExit(2)
+
+    metrics = metrics.copy()
+    metrics["norm_h"] = metrics["h_err_m"].abs() / args.eps_h
+    metrics["norm_v"] = metrics["v_err_mps"].abs() / args.eps_v
+    metrics["norm_s"] = metrics["s_go_err_m"].abs() / args.eps_s
+    metrics["norm_max"] = metrics[["norm_h", "norm_v", "norm_s"]].max(axis=1)
+
+    # Sort by strongest residual first for diagnostic clarity
+    metrics_plot = metrics.sort_values("norm_max", ascending=False).head(args.max_cases).reset_index(drop=True)
+
+    labels = [f"C{i+1}" for i in range(len(metrics_plot))]
+    x = np.arange(len(metrics_plot))
+    width = 0.26
+
+    fig, ax = plt.subplots(figsize=(10.5, 5.8))
+    ax.bar(x - width, metrics_plot["norm_h"], width, label=r"Altitude residual $|e_h|/\epsilon_h$")
+    ax.bar(x, metrics_plot["norm_v"], width, label=r"Velocity residual $|e_v|/\epsilon_v$")
+    ax.bar(x + width, metrics_plot["norm_s"], width, label=r"Range-to-go residual $|e_s|/\epsilon_s$")
+
+    ax.axhline(1.0, linestyle="--", linewidth=1.2, label="Strict TAEM tolerance boundary")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.set_ylabel("Normalized terminal residual")
+    ax.set_title("Normalized terminal-residual diagnostic")
+    ax.grid(True, axis="y", alpha=0.3)
+    ax.legend(fontsize=8, loc="best")
+
+    # Add compact case labels as note under plot
+    case_note = "; ".join([f"{labels[i]}={metrics_plot.loc[i, 'case_id']}" for i in range(len(metrics_plot))])
+    fig.text(0.01, -0.04, case_note, ha="left", va="top", fontsize=7)
+
+    fig.tight_layout()
+
+    pdf_path = outdir / f"{args.outname}.pdf"
+    png_path = outdir / f"{args.outname}.png"
+    csv_path = outdir / "b5e_normalized_terminal_residuals.csv"
+
+    fig.savefig(pdf_path, bbox_inches="tight")
+    fig.savefig(png_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+
+    metrics.to_csv(csv_path, index=False)
+
+    print("[OK] Wrote:")
+    print(f"  {pdf_path}")
+    print(f"  {png_path}")
+    print(f"  {csv_path}")
+    print(f"  {missing_path}")
+    print()
+    print("[INFO] Cases plotted:", len(metrics_plot))
+    print("[INFO] Cases extracted:", len(metrics))
+    print("[INFO] Missing/unusable cases:", len(missing))
+    print()
+    print("Interpretation:")
+    print("  normalized residual <= 1 : inside that component tolerance")
+    print("  normalized residual >  1 : violates that component tolerance")
+
+
+if __name__ == "__main__":
+    main()
+

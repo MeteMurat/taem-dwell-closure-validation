@@ -1,0 +1,21 @@
+\begin{table}[pos=htbp]
+\centering
+\scriptsize
+\caption{Transferability-interface audit of the dwell-confirmed TAEM validation layer. The replay uses only guidance-agnostic terminal-state interface fields and does not use V8.2-specific phase or terminal-capture variables.}
+\label{tab:transferability_interface_audit}
+\begin{tabular}{lll}
+\hline
+Audit item & Value & Interpretation \\
+\hline
+CSV files replayed & 50 & Final sampled-validation combined trajectory logs. \\
+Vehicle logs replayed & 150 & Three role trajectories per sampled case. \\
+Guidance-agnostic interface mode & terminal_error_columns & Interface used by the portable checker. \\
+Portable vehicle-level dwell closures & 149/150 = 0.993333 & Reconstructed without V8.2-specific phase variables. \\
+Portable case-level dwell closures & 49/50 = 0.980000 & All roles must satisfy the dwell event. \\
+Portable strict-like vehicle closures & 149/150 = 0.993333 & Dwell replay plus available terminal-reason and escape checks. \\
+Portable strict-like case closures & 49/50 = 0.980000 & Case-level pass under the portable strict-like checker. \\
+Forbidden V8.2/internal terms in consumed fields & none & Checks whether consumed columns encode guidance-version internals. \\
+Transferability boundary & Interface-level only & Other guidance laws must still be revalidated with their own trajectory logs. \
+\hline
+\end{tabular}
+\end{table}

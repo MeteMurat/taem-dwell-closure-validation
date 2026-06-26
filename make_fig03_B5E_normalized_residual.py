@@ -1,0 +1,231 @@
+﻿# -*- coding: utf-8 -*-
+"""
+make_fig03_B5E_normalized_residual.py
+
+Purpose:
+- Recreate Fig. 4 as a normalized B5E terminal-residual diagnostic.
+- Normalization:
+    |e_h| / epsilon_h
+    |e_v| / epsilon_v
+    |e_s| / epsilon_s
+
+Default strict TAEM tolerances:
+    epsilon_h = 3000 m
+    epsilon_v = 100 m/s
+    epsilon_s = 20000 m
+
+Outputs:
+- fig03_B5E_terminal_error_diagnostic_professional.pdf
+- fig03_B5E_terminal_error_diagnostic_professional.png
+- b5e_normalized_terminal_residuals.csv
+"""
+
+import argparse
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+def pick_col(df, candidates, required=True):
+    for c in candidates:
+        if c in df.columns:
+            return c
+    if required:
+        raise ValueError(
+            "Required column not found. Tried: "
+            + ", ".join(candidates)
+            + "\nAvailable columns:\n"
+            + "\n".join(df.columns)
+        )
+    return None
+
+
+def safe_num(s):
+    return pd.to_numeric(s, errors="coerce").astype(float)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+
+    ap.add_argument("--input", required=True, help="B5E summary/by-vehicle CSV file")
+    ap.add_argument("--outdir", default="figs", help="Output directory, usually manuscript figs folder")
+    ap.add_argument(
+        "--outname",
+        default="fig03_B5E_terminal_error_diagnostic_professional",
+        help="Output filename without extension",
+    )
+
+    # strict TAEM tolerances from manuscript
+    ap.add_argument("--eps_h", type=float, default=3000.0, help="Altitude tolerance, m")
+    ap.add_argument("--eps_v", type=float, default=100.0, help="Velocity tolerance, m/s")
+    ap.add_argument("--eps_s", type=float, default=20000.0, help="Range-to-go tolerance, m")
+
+    # optional filtering, useful if the CSV has several vehicles
+    ap.add_argument("--vehicle", default=None, help="Optional vehicle/mis id to keep, e.g. 0 or Vehicle 1")
+    ap.add_argument("--max_candidates", type=int, default=12, help="Number of candidates to plot")
+
+    args = ap.parse_args()
+
+    inp = Path(args.input)
+    outdir = Path(args.outdir)
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    df = pd.read_csv(inp)
+
+    # Optional vehicle filter
+    if args.vehicle is not None:
+        id_col = pick_col(df, ["mis_id", "vehicle_id", "Vehicle", "vehicle"], required=False)
+        if id_col is not None:
+            df = df[df[id_col].astype(str) == str(args.vehicle)].copy()
+
+    # Candidate/case label
+    label_col = pick_col(
+        df,
+        [
+            "candidate_label",
+            "case_label",
+            "case_id",
+            "b5e_case_id",
+            "run_id",
+            "label",
+        ],
+        required=False,
+    )
+
+    # Error columns: support several naming variants
+    h_col = pick_col(
+        df,
+        [
+            "taem_h_err_final",
+            "taem_h_err",
+            "h_err_final",
+            "height_error_final",
+            "height_err_final",
+        ],
+    )
+    v_col = pick_col(
+        df,
+        [
+            "taem_v_err_final",
+            "taem_v_err",
+            "v_err_final",
+            "velocity_error_final",
+            "velocity_err_final",
+        ],
+    )
+    s_col = pick_col(
+        df,
+        [
+            "taem_s_go_err_final",
+            "taem_s_go_err",
+            "s_go_err_final",
+            "range_error_final",
+            "range_to_go_error_final",
+        ],
+    )
+
+    # If the CSV has repeated time-series rows per candidate, keep the final row per candidate.
+    if label_col is not None:
+        time_col = pick_col(df, ["global_t", "t_local", "t", "time"], required=False)
+        if time_col is not None:
+            df["_time_sort"] = safe_num(df[time_col])
+            df = df.sort_values("_time_sort").groupby(label_col, as_index=False).tail(1)
+        else:
+            df = df.groupby(label_col, as_index=False).tail(1)
+    else:
+        df = df.copy()
+        df["candidate_label"] = [f"Candidate {i+1}" for i in range(len(df))]
+        label_col = "candidate_label"
+
+    # Keep finite rows only
+    df["_h_abs"] = safe_num(df[h_col]).abs()
+    df["_v_abs"] = safe_num(df[v_col]).abs()
+    df["_s_abs"] = safe_num(df[s_col]).abs()
+
+    df = df[np.isfinite(df["_h_abs"]) & np.isfinite(df["_v_abs"]) & np.isfinite(df["_s_abs"])].copy()
+
+    # Use first N candidates, preserving current ordering
+    df = df.head(args.max_candidates).copy()
+
+    # Normalized residuals
+    df["Altitude residual |e_h|/eps_h"] = df["_h_abs"] / args.eps_h
+    df["Velocity residual |e_v|/eps_v"] = df["_v_abs"] / args.eps_v
+    df["Range-to-go residual |e_s|/eps_s"] = df["_s_abs"] / args.eps_s
+
+    # Clean labels
+    labels = []
+    for i, val in enumerate(df[label_col].astype(str).tolist(), start=1):
+        if val.lower().startswith("candidate"):
+            labels.append(val)
+        else:
+            labels.append(f"Candidate {i}")
+
+    x = np.arange(len(df))
+    width = 0.26
+
+    fig, ax = plt.subplots(figsize=(10.5, 5.8))
+
+    ax.bar(
+        x - width,
+        df["Altitude residual |e_h|/eps_h"].to_numpy(),
+        width,
+        label=r"Altitude residual $|e_h|/\epsilon_h$",
+    )
+    ax.bar(
+        x,
+        df["Velocity residual |e_v|/eps_v"].to_numpy(),
+        width,
+        label=r"Velocity residual $|e_v|/\epsilon_v$",
+    )
+    ax.bar(
+        x + width,
+        df["Range-to-go residual |e_s|/eps_s"].to_numpy(),
+        width,
+        label=r"Range-to-go residual $|e_s|/\epsilon_s$",
+    )
+
+    ax.axhline(1.0, linestyle="--", linewidth=1.2, label="Strict TAEM tolerance boundary")
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=35, ha="right")
+    ax.set_ylabel("Normalized terminal residual")
+    ax.set_title("Normalized terminal-residual diagnostic")
+    ax.grid(True, axis="y", alpha=0.3)
+    ax.legend(fontsize=8, loc="best")
+
+    fig.tight_layout()
+
+    pdf_path = outdir / f"{args.outname}.pdf"
+    png_path = outdir / f"{args.outname}.png"
+    csv_path = outdir / "b5e_normalized_terminal_residuals.csv"
+
+    fig.savefig(pdf_path, bbox_inches="tight")
+    fig.savefig(png_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+
+    export_cols = [
+        label_col,
+        h_col,
+        v_col,
+        s_col,
+        "Altitude residual |e_h|/eps_h",
+        "Velocity residual |e_v|/eps_v",
+        "Range-to-go residual |e_s|/eps_s",
+    ]
+    df[export_cols].to_csv(csv_path, index=False)
+
+    print("[OK] Wrote:")
+    print(f"  {pdf_path}")
+    print(f"  {png_path}")
+    print(f"  {csv_path}")
+    print()
+    print("Interpretation rule:")
+    print("  normalized residual <= 1  : inside that TAEM tolerance component")
+    print("  normalized residual >  1  : violates that TAEM tolerance component")
+
+
+if __name__ == "__main__":
+    main()
+

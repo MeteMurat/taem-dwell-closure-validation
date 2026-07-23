@@ -18,3 +18,14 @@ the repository's `docs/` folder. The normal URL form is:
 `https://<github-user>.github.io/<repository>/`
 
 No commit or push is performed by the builder.
+
+<!-- TAEM_3D_DISPLAY_SCALING_BEGIN -->
+## Display scaling
+
+The default **Enhanced 3D** view uses independent visual axis scaling so that
+the approximately 0--80 km altitude range remains visible beside the
+multi-thousand-kilometre horizontal displacement. Axis labels, numerical
+values, event coordinates, and hover values remain in physical units. The
+**Scientific scale** control restores data-proportional geometry. The enhanced
+view is a visualization aid and is not an additional validation criterion.
+<!-- TAEM_3D_DISPLAY_SCALING_END -->

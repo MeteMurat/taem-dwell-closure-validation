@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "Please cite the associated manuscript and archived software release."
+title: "TAEM 3D validated trajectory replay"
+type: software
+authors:
+  - family-names: "Türkoğlu"
+    given-names: "Murat Metehan"
+version: "1.0.0-candidate"
+date-released: "2026-07-23"
+abstract: "Interactive post-processing replay of one representative validated three-role TAEM trajectory case."
